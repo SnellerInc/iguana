@@ -63,20 +63,28 @@ namespace iguana {
             return m_data[k];
         }
 
-        constexpr value_type* begin() const noexcept {
-            return m_data;
-        }
-
         constexpr const value_type* cbegin() const noexcept {
             return m_data;
         }
 
-        constexpr value_type* end() const noexcept {
+        constexpr const value_type* cend() const noexcept {
             return m_data + m_size;
         }
 
-        constexpr const value_type* cend() const noexcept {
+        constexpr value_type* begin() noexcept {
+            return m_data;
+        }
+
+        constexpr const value_type* begin() const noexcept {
+            return cbegin();
+        }
+
+        constexpr value_type* end() noexcept {
             return m_data + m_size;
+        }
+
+        constexpr const value_type* end() const noexcept {
+            return cend();
         }
     }; 
 
