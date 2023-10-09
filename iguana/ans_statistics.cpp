@@ -15,6 +15,7 @@
 #include "ans_statistics.h"
 
 namespace iguana::ans {
+
     class statistics::builder {
         friend statistics;
 

@@ -27,7 +27,11 @@ namespace iguana::ans {
     constexpr inline static std::uint32_t word_L = std::uint32_t(1) << word_L_bits;
     constexpr inline static std::uint32_t word_M = std::uint32_t(1) << word_M_bits;
 
+    //
+
     constexpr inline static std::size_t initial_buffer_size = 1 << 20;
+    
+    //
 
     class iguana_public statistics {
         class builder;
