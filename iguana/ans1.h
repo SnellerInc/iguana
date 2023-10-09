@@ -21,33 +21,22 @@
 namespace iguana::ans1 {
 
     class iguana_public encoder {
-    public:
-        constexpr inline static std::size_t   word_l_bits = 16;
-        constexpr inline static std::uint32_t word_l = std::uint32_t(1) << word_l_bits;
-        constexpr inline static std::size_t   word_m_bits = 12;
-        constexpr inline static std::uint32_t word_m = std::uint32_t(1) << word_m_bits;
-
     private:
-	    std::uint32_t       m_state = word_l;
-        byte_span      	    m_src;
-        byte_buffer         m_buf;
-        ans::statistics*    m_stats = nullptr;
+	    std::uint32_t           m_state = ans::word_L;
+        byte_span      	        m_src;
+        byte_buffer             m_buf;
+        const ans::statistics*  m_stats = nullptr;
         
     public:
-        encoder(const byte_span& src, ans::statistics* p_stats)
-          : m_state(word_l)
-          , m_src(src)
-          , m_buf()
-          , m_stats(p_stats) {}
-
+        encoder(const byte_span& src, const ans::statistics& stats);
         ~encoder() noexcept = default;
 
         encoder(const encoder&) = delete;
         encoder& operator =(const encoder&) = delete;
 
-        encoder(encoder&&) = default;
-        encoder& operator =(encoder&&) = default;
-
+        encoder(encoder&& v) = default;
+        encoder& operator =(encoder&& v) = default;
+        
     public:
 
 

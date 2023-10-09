@@ -17,9 +17,30 @@
 #include <vector>
 
 namespace iguana {
-    template <
-        typename T
-    > using buffer = std::vector<T>;
 
-    using byte_buffer = buffer<std::uint8_t>;
+    class byte_buffer {
+        using container_type = std::vector<std::uint8_t>;
+
+    public:
+        using size_type = typename container_type::size_type;
+
+    private:
+         container_type m_data;
+
+    public:
+        byte_buffer() = default;
+        ~byte_buffer() noexcept = default;
+        byte_buffer(const byte_buffer&) = default;
+        byte_buffer& operator =(const byte_buffer&) = default;
+        byte_buffer(byte_buffer&&) = default;
+        byte_buffer& operator =(byte_buffer&&) = default;
+
+    public:
+    
+        void reserve(size_type n) {
+            m_data.reserve(n);
+        }
+        
+        template <typename T> void append_little_endian(T v);
+    };
 }

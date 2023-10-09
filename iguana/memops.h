@@ -44,5 +44,27 @@ namespace iguana {
         > inline void zero(std::array<T, N>& a) noexcept {
             zero(a.data(), N);        
         }
+
+        template <
+            typename T
+        > inline std::enable_if_t<std::is_trivial_v<T>> fill(T* p, std::size_t n, const T& v) noexcept {
+            for(std::size_t i = 0; i < n; ++i) {
+                p[i] = v;
+            }
+        }
+
+        template <
+            typename T,
+            std::size_t N
+        > inline void fill(T (&a)[N], const T& v) noexcept {
+            fill(&a[0], N, v);        
+        }
+
+        template <
+            typename T,
+            std::size_t N
+        > inline void fill(std::array<T, N>& a, const T& v) noexcept {
+            fill(a.data(), N, v);        
+        }        
     }
 }

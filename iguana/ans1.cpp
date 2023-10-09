@@ -14,6 +14,14 @@
 
 #include "ans1.h"
 
+iguana::ans1::encoder::encoder(const byte_span& src, const ans::statistics& stats)
+  : m_state(ans::word_L)
+  , m_src(src)
+  , m_buf()
+  , m_stats(&stats) {
+    m_buf.reserve(ans::initial_buffer_size);
+}
+
 // This experimental arithmetic compression/decompression functionality is based on
 // the work of Fabian Giesen, available here: https://github.com/rygorous/ryg_rans
 // and kindly placed in the Public Domain per the CC0 licence:
@@ -23,33 +31,26 @@
 // https://arxiv.org/pdf/1311.2540.pdf
 
 void iguana::ans1::encoder::put(std::uint8_t v) {
-/*
-	q := e.stats.table[v]
-	freq := q & ansStatisticsFrequencyMask
-	start := (q >> ansStatisticsFrequencyBits) & ansStatisticsCumulativeFrequencyMask
+	const auto q = (*m_stats)[v];
+    const auto freq = q & ans::statistics::frequency_mask;
+    const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
 	// renormalize
-	x := e.state
-	if x >= ((ansWordL>>ansWordMBits)<<ansWordLBits)*freq {
-		e.buf = binary.LittleEndian.AppendUint16(e.buf, uint16(x))
-		x >>= ansWordLBits
+	auto x = m_state;
+	if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
+		m_buf.append_little_endian(static_cast<std::uint16_t>(x));
+		x >>= ans::word_L_bits;
 	}
 	// x = C(s,x)
-	e.state = ((x / freq) << ansWordMBits) + (x % freq) + start
-*/
+	m_state = ((x / freq) << ans::word_M_bits) + (x % freq) + start;
 }
 
 void iguana::ans1::encoder::flush() {
-    // TODO: 	e.buf = binary.LittleEndian.AppendUint32(e.buf, e.state)
+    m_buf.append_little_endian(m_state);
 }
+
 
 
 /*
-func (e *ANS1Encoder) init(src []byte, stats *ANSStatistics) {
-	e.src = src
-	e.buf = slices.Grow(e.buf[:0], entropyInitialBufferSize)
-	e.state = ansWordL
-	e.stats = stats
-}
 
 func (e *ANS1Encoder) Encode(src []byte) ([]byte, error) {
 	stats := &e.statbuf

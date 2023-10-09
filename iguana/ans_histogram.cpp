@@ -15,7 +15,7 @@
 #include "ans_statistics.h"
 #include "utils.h"
 
-int iguana::ans::histogram::compute(std::uint8_t *p, std::size_t n) noexcept {
+int iguana::ans::histogram::compute(const std::uint8_t *p, std::size_t n) noexcept {
 	// 4-way histogram calculation to compensate for the store-to-load forwarding issues observed here:
 	// https://fastcompression.blogspot.com/2014/09/counting-bytes-fast-little-trick-from.html
 

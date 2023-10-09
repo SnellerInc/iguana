@@ -21,11 +21,17 @@ namespace iguana {
         typename T_SIZE = std::size_t
     > class span {
     public:
-        using value_type = T_DATA;
-        using size_type  = T_SIZE;
-
+        using value_type        = T_DATA;
+        using size_type         = T_SIZE;
+        using pointer           = value_type*;
+        using const_pointer     = const value_type*;
+        using reference         = value_type&;
+        using const_reference   = const value_type&;
+        using iterator          = pointer;
+        using const_iterator    = const_pointer;
+        
     public:
-        value_type* m_data = nullptr;
+        pointer     m_data = nullptr;
         size_type   m_size = 0;
         
     public:
@@ -33,7 +39,7 @@ namespace iguana {
         span(const span&) noexcept = default;
         span(span&&) noexcept = default;
 
-        span(value_type* p, size_type n) noexcept
+        span(pointer p, size_type n) noexcept
           : m_data(p)
           , m_size(n) {
             assert((n != 0) || (p == nullptr));
@@ -49,44 +55,45 @@ namespace iguana {
             return m_size;
         }
 
-        constexpr value_type* data() const noexcept {
+        constexpr pointer data() const noexcept {
             return m_data;
         }
         
-        constexpr value_type operator [](size_type k) const noexcept {
+        constexpr const_reference operator [](size_type k) const noexcept {
             assert(k < size());
             return m_data[k];
         }
 
-        constexpr value_type& operator [](size_type k) noexcept {
+        constexpr reference operator [](size_type k) noexcept {
             assert(k < size());
             return m_data[k];
         }
 
-        constexpr const value_type* cbegin() const noexcept {
+        constexpr const_iterator cbegin() const noexcept {
             return m_data;
         }
 
-        constexpr const value_type* cend() const noexcept {
+        constexpr const_iterator cend() const noexcept {
             return m_data + m_size;
         }
 
-        constexpr value_type* begin() noexcept {
+        constexpr iterator begin() noexcept {
             return m_data;
         }
 
-        constexpr const value_type* begin() const noexcept {
+        constexpr const_iterator begin() const noexcept {
             return cbegin();
         }
 
-        constexpr value_type* end() noexcept {
+        constexpr iterator end() noexcept {
             return m_data + m_size;
         }
 
-        constexpr const value_type* end() const noexcept {
+        constexpr const_iterator end() const noexcept {
             return cend();
         }
     }; 
 
     using byte_span = span<std::uint8_t>;
+    using const_byte_span = span<const std::uint8_t>;
 }

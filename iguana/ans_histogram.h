@@ -39,9 +39,9 @@ namespace iguana::ans {
         histogram& operator =(histogram&&) noexcept = default;
 
     public:
-        int compute(std::uint8_t *p, std::size_t n) noexcept;
+        int compute(const std::uint8_t *p, std::size_t n) noexcept;
 
-        int compute(byte_span s) noexcept {
+        int compute(const_byte_span s) noexcept {
             return compute(s.data(), s.size());
         }
     };
