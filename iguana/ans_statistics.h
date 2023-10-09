@@ -18,7 +18,6 @@
 #include "span.h"
 #include "memops.h"
 #include "buffer.h"
-#include "ans_histogram.h"
 
 namespace iguana::ans {
 
@@ -26,6 +25,12 @@ namespace iguana::ans {
     constexpr inline static std::size_t   word_L_bits = 16;
     constexpr inline static std::uint32_t word_L = std::uint32_t(1) << word_L_bits;
     constexpr inline static std::uint32_t word_M = std::uint32_t(1) << word_M_bits;
+
+    //
+
+	constexpr inline static std::size_t ctrl_block_size         = 96;
+	constexpr inline static std::size_t nibble_block_max_length = 384; // 256 3-nibble groups
+	constexpr inline static std::size_t dense_table_max_length  = ctrl_block_size + nibble_block_max_length;
 
     //
 

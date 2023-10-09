@@ -14,11 +14,8 @@
 
 #include "ans1.h"
 
-iguana::ans1::encoder::encoder(const byte_span& src, const ans::statistics& stats)
-  : m_state(ans::word_L)
-  , m_src(src)
-  , m_buf()
-  , m_stats(&stats) {
+iguana::ans1::encoder::encoder()
+  : m_state(ans::word_L) {
     m_buf.reserve(ans::initial_buffer_size);
 }
 
@@ -30,8 +27,8 @@ iguana::ans1::encoder::encoder(const byte_span& src, const ans::statistics& stat
 // For theoretical background, please refer to Jaroslaw Duda's seminal paper on rANS:
 // https://arxiv.org/pdf/1311.2540.pdf
 
-void iguana::ans1::encoder::put(std::uint8_t v) {
-	const auto q = (*m_stats)[v];
+void iguana::ans1::encoder::put(std::uint8_t v, const ans::statistics& stats) {
+	const auto q = stats[v];
     const auto freq = q & ans::statistics::frequency_mask;
     const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
 	// renormalize
@@ -47,6 +44,32 @@ void iguana::ans1::encoder::put(std::uint8_t v) {
 void iguana::ans1::encoder::flush() {
     m_buf.append_little_endian(m_state);
 }
+
+iguana::error_code iguana::ans1::encoder::encode(const std::uint8_t *src, std::size_t n) {
+    return encode(src, n, ans::statistics(src, n));
+}
+
+iguana::error_code iguana::ans1::encoder::encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
+    clear();
+    compress(src, n, stats);
+	const auto len_buf = m_buf.size();
+    m_buf.reserve(len_buf + ans::dense_table_max_length);
+	return error_code::ok;
+}
+
+void iguana::ans1::encoder::clear() {
+    m_state = ans::word_L;
+    m_buf.clear();
+}
+
+void iguana::ans1::encoder::compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
+	for(auto *p = src + n; p > src;) {
+		put(*--p, stats);
+	}
+	flush();
+}
+
+
 
 
 
@@ -69,15 +92,6 @@ func (e *ANS1Encoder) EncodeExplicit(src []byte, stats *ANSStatistics) ([]byte, 
 	lenBuf := len(e.buf)
 	buf := slices.Grow(e.buf, lenBuf+ansDenseTableMaxLength)
 	return buf, nil
-}
-
-func ans1CompressReference(enc *ANS1Encoder) {
-	srcLen := len(enc.src)
-	for i := srcLen - 1; i >= 0; i-- {
-		enc.put(enc.src[i])
-	}
-	enc.flush()
-	enc.src = enc.src[:0]
 }
 
 func ANS1Decode(src []byte, dstLen int) ([]byte, error) {

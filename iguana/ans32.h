@@ -17,16 +17,17 @@
 #include "span.h"
 #include "buffer.h"
 #include "ans_statistics.h"
+#include "error.h"
 
-namespace iguana::ans1 {
+namespace iguana::ans32 {
 
     class iguana_public encoder {
-    private:
-	    std::uint32_t   m_state = ans::word_L;
-        byte_buffer     m_buf;
-        
+        std::uint32_t   m_state[32];
+        byte_buffer     m_buf_fwd;
+        byte_buffer     m_buf_rev;
+
     public:
-        encoder();
+        encoder() noexcept;
         ~encoder() noexcept = default;
 
         encoder(const encoder&) = delete;
@@ -34,7 +35,7 @@ namespace iguana::ans1 {
 
         encoder(encoder&& v) = default;
         encoder& operator =(encoder&& v) = default;
-        
+    
     public:
         error_code encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats);
         error_code encode(const std::uint8_t *src, std::size_t n);
@@ -56,13 +57,7 @@ namespace iguana::ans1 {
             compress_portable(src, n, stats);
         }
 
-        void put(std::uint8_t v, const ans::statistics& stats);
+        void put(const std::uint8_t* p, std::size_t avail, const ans::statistics& stats);
         void flush();
-    };
-
-    //
-
-    class iguana_public decoder {
-
     };
 }

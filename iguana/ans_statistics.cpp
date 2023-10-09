@@ -13,6 +13,9 @@
 //  limitations under the License.
 
 #include "ans_statistics.h"
+#include "utils.h"
+
+//
 
 namespace iguana::ans {
 
@@ -182,3 +185,113 @@ void iguana::ans::statistics::compute(const std::uint8_t *p, std::size_t n) noex
 		m_table[i] = (bld.m_cum_freqs[i] << cumulative_frequency_bits) | bld.m_freqs[i];
 	}
 }
+
+/*
+
+type ansBitStream struct {
+	acc uint64
+	cnt int
+	buf []byte
+}
+
+func (s *ansBitStream) reset() {
+	s.acc = 0
+	s.cnt = 0
+	s.buf = s.buf[:0]
+}
+
+func (s *ansBitStream) add(v uint32, k uint32) {
+	m := ^(^uint32(0) << k)
+	s.acc |= uint64(v&m) << s.cnt
+	s.cnt += int(k)
+	for s.cnt >= 8 {
+		s.buf = append(s.buf, byte(s.acc))
+		s.acc >>= 8
+		s.cnt -= 8
+	}
+}
+
+func (s *ansBitStream) flush() {
+	for s.cnt > 0 {
+		s.buf = append(s.buf, byte(s.acc))
+		s.acc >>= 8
+		s.cnt -= 8
+	}
+}
+
+
+func ansDecodeFullTableReference(tab *ANSDenseTable, src []byte) ([]byte, errorCode) {
+	// The code part is encoded as 256 3-bit values, making it 96 bytes in total.
+	// Decoding it in groups of 24 bits is convenient: 8 words at a time.
+	srcLen := len(src)
+	if srcLen < ansCtrlBlockSize {
+		return nil, ecWrongSourceSize
+	}
+	ctrl := src[srcLen-ansCtrlBlockSize:]
+	var freqs [256]uint32
+	nibidx := (srcLen-ansCtrlBlockSize-1)*2 + 1
+	k := 0
+	for i := 0; i < ansCtrlBlockSize; i += 3 {
+		x := uint32(ctrl[i]) | uint32(ctrl[i+1])<<8 | uint32(ctrl[i+2])<<16
+		// Eight 3-bit control words fit within a single 24-bit chunk
+		for j := 0; j != 8; j++ {
+			v := x & 0x07
+			x >>= 3
+			var ec errorCode
+			switch v {
+			case 0b111:
+				// Three nibbles f - 277
+				var x0, x1, x2 uint32
+				x0, nibidx, ec = ansFetchNibble(src, nibidx)
+				if ec != ecOK {
+					return nil, ec
+				}
+				x1, nibidx, ec = ansFetchNibble(src, nibidx)
+				if ec != ecOK {
+					return nil, ec
+				}
+				x2, nibidx, ec = ansFetchNibble(src, nibidx)
+				if ec != ecOK {
+					return nil, ec
+				}
+				freqs[k] = (x0 | (x1 << 4) | (x2 << 8)) + 277
+			case 0b110:
+				// Two nibbles f - 21
+				var x0, x1 uint32
+				x0, nibidx, ec = ansFetchNibble(src, nibidx)
+				if ec != ecOK {
+					return nil, ec
+				}
+				x1, nibidx, ec = ansFetchNibble(src, nibidx)
+				if ec != ecOK {
+					return nil, ec
+				}
+				freqs[k] = (x0 | (x1 << 4)) + 21
+			case 0b101:
+				// One nibble f - 5
+				var x0 uint32
+				x0, nibidx, ec = ansFetchNibble(src, nibidx)
+				if ec != ecOK {
+					return nil, ec
+				}
+				freqs[k] = x0 + 5
+			default:
+				// Explicit encoding of a short value
+				freqs[k] = v
+			}
+			k++
+		}
+	}
+
+	// The normalized frequencies have been recovered. Fill the dense table accordingly.
+	start := uint32(0)
+	for sym, freq := range freqs {
+		for i := uint32(0); i < freq; i++ {
+			slot := start + i
+			tab[slot] = (uint32(sym) << 24) | (i << ansWordMBits) | freq
+		}
+		start += freq
+	}
+	return src[:(nibidx+1)>>1], ecOK
+}
+*/
