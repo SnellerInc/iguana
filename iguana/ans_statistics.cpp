@@ -15,7 +15,7 @@
 #include "ans_statistics.h"
 
 namespace iguana::ans {
-    class statistics::collector {
+    class statistics::builder {
         friend statistics;
 
     private:
@@ -23,11 +23,11 @@ namespace iguana::ans {
         std::array<std::uint32_t, 257>  m_cum_freqs;   
 
     public:
-        collector() noexcept = default;
-        ~collector() = default;
+        builder() noexcept = default;
+        ~builder() = default;
 
     public:
-        void compute(const std::uint8_t *p, std::size_t n) noexcept;
+        void build(const std::uint8_t *p, std::size_t n) noexcept;
 
     private:
         void normalize_freqs() noexcept;
@@ -36,7 +36,7 @@ namespace iguana::ans {
     };
 }
 
-void iguana::ans::statistics::collector::compute(const std::uint8_t *p, std::size_t n) noexcept {
+void iguana::ans::statistics::builder::build(const std::uint8_t *p, std::size_t n) noexcept {
     memory::zero(m_freqs); 
     memory::zero(m_cum_freqs); 
 
@@ -78,7 +78,7 @@ void iguana::ans::statistics::collector::compute(const std::uint8_t *p, std::siz
 	normalize_freqs();
 }
 
-void iguana::ans::statistics::collector::normalize_freqs() noexcept {
+void iguana::ans::statistics::builder::normalize_freqs() noexcept {
     calc_cum_freqs();        
 	const std::size_t target_total = word_M;
 	const std::size_t cur_total = m_cum_freqs[256]; // TODO: prefix sum
@@ -127,14 +127,14 @@ void iguana::ans::statistics::collector::normalize_freqs() noexcept {
 	}
 }
 
-void iguana::ans::statistics::collector::calc_cum_freqs() noexcept {
+void iguana::ans::statistics::builder::calc_cum_freqs() noexcept {
 	// TODO: another prefix sum
 	for(auto i = 0; i != m_freqs.size(); ++i) {
 		m_cum_freqs[i+1] = m_cum_freqs[i] + m_freqs[i];
 	}
 }
 
-int iguana::ans::statistics::collector::compute_histogram(const std::uint8_t *p, std::size_t n) noexcept {
+int iguana::ans::statistics::builder::compute_histogram(const std::uint8_t *p, std::size_t n) noexcept {
 	// 4-way histogram calculation to compensate for the store-to-load forwarding issues observed here:
 	// https://fastcompression.blogspot.com/2014/09/counting-bytes-fast-little-trick-from.html
 
@@ -174,10 +174,10 @@ int iguana::ans::statistics::collector::compute_histogram(const std::uint8_t *p,
 }
 
 void iguana::ans::statistics::compute(const std::uint8_t *p, std::size_t n) noexcept {
-    collector col;
-    col.compute(p, n);
+    builder bld;
+    bld.build(p, n);
     
 	for(std::size_t i = 0; i != 256; ++i) {
-		m_table[i] = (col.m_cum_freqs[i] << cumulative_frequency_bits) | col.m_freqs[i];
+		m_table[i] = (bld.m_cum_freqs[i] << cumulative_frequency_bits) | bld.m_freqs[i];
 	}
 }

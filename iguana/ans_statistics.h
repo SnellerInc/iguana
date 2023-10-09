@@ -30,7 +30,7 @@ namespace iguana::ans {
     constexpr inline static std::size_t initial_buffer_size = 1 << 20;
 
     class iguana_public statistics {
-        class collector;
+        class builder;
 
     public:
         constexpr inline static std::uint32_t frequency_bits = word_M_bits;
