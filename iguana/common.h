@@ -26,3 +26,9 @@
 #else
     #define iguana_public   iguana_import
 #endif
+
+#define iguana_private
+
+namespace iguana {
+    using ssize_t = std::make_signed_t<std::size_t>;
+}

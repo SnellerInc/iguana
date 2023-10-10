@@ -70,7 +70,7 @@ namespace iguana::ans1 {
         decoder& operator =(decoder&& v) = default;
 
     public:
-        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics& stats) override final; 
+        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab) override final; 
         using super::decode;       
     };
 }

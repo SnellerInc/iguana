@@ -18,6 +18,65 @@
 
 namespace iguana {
     class iguana_public input_stream {
+        const std::uint8_t* m_start = nullptr;
+        const std::uint8_t* m_end   = nullptr;
 
+    public:
+        input_stream() noexcept = default;            
+
+        input_stream(const std::uint8_t* s, const std::uint8_t* e) noexcept 
+          : m_start(s)
+          , m_end(e) {}       
+
+        input_stream(const std::uint8_t* s, std::size_t n) noexcept 
+          : m_start(s)
+          , m_end(s + n) {}      
+
+        ~input_stream() noexcept = default;
+
+        input_stream(const input_stream&) = default;
+        input_stream& operator =(const input_stream&) = default;
+
+        input_stream(input_stream&&) = default;
+        input_stream& operator =(input_stream&&) = default;
+
+    public:
+
+        bool empty() const noexcept {
+            return m_start == m_end;
+        }
+
+        std::size_t size() const noexcept {
+            return m_end - m_start;
+        }
+
+        const std::uint8_t* data() const noexcept {
+            return m_start;
+        }
+
+        const std::uint8_t* edata() const noexcept {
+            return m_end;
+        }
+
+        void consume_from_start(std::size_t n) noexcept {
+            m_start += n;
+        }
+
+        void consume_from_end(std::size_t n) noexcept {
+            m_end -= n;
+        }
+
+        void set_start(const std::uint8_t* p) noexcept {
+            m_start = p;
+        }
+
+        void set_end(const std::uint8_t* p) noexcept {
+            m_end = p;
+        }
+
+        std::uint8_t operator [](std::size_t idx) const noexcept {
+            assert(idx < size());
+            return m_start[idx];
+        }
     };
 }

@@ -15,7 +15,6 @@
 #pragma once
 #include "common.h"
 #include "span.h"
-#include "buffer.h"
 #include "ans_statistics.h"
 #include "input_stream.h"
 #include "output_stream.h"
@@ -23,7 +22,7 @@
 namespace iguana::ans {
     class iguana_public decoder {
     protected:
-        decoder();
+        decoder() {}
         virtual ~decoder() noexcept;
 
     public: 
@@ -34,6 +33,7 @@ namespace iguana::ans {
         decoder& operator =(decoder&& v) = default;           
 
     public:
-        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics& stats) = 0;      
+        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab) = 0;      
+        void decode(output_stream& dst, input_stream& src);      
     };
 }

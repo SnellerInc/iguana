@@ -15,13 +15,15 @@
 #include "output_stream.h"
 
 void iguana::output_stream::append(const value_type* p, size_type n) {
+    // TODO: optimize me
     for(auto* const e = p + n; p != e; ++p) {
         append(*p);
     }
 }
 
-
 void iguana::output_stream::append_reverse(const value_type* p, size_type n) {
-
+    // TODO: optimize me
+    for(auto* e = p + n; e != p;) {
+        append(*--e);
+    }
 }
-

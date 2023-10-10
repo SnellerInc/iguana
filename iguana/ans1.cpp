@@ -63,9 +63,10 @@ iguana::ans1::decoder::decoder() {}
 
 iguana::ans1::decoder::~decoder() noexcept {}
 
-void iguana::ans1::decoder::decode(output_stream& dst, input_stream& src, const ans::statistics& stats) {
-
+void iguana::ans1::decoder::decode(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab) {
+    
 }        
+
 
 
 

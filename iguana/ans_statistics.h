@@ -17,7 +17,8 @@
 #include "common.h"
 #include "span.h"
 #include "memops.h"
-#include "buffer.h"
+#include "input_stream.h"
+#include "output_stream.h"
 
 namespace iguana::ans {
 
@@ -40,6 +41,10 @@ namespace iguana::ans {
 
     class iguana_public statistics {
         class builder;
+        class bitstream;
+
+    public:
+        using decoding_table = std::uint32_t[256];
 
     public:
         constexpr inline static std::uint32_t frequency_bits = word_M_bits;
@@ -63,6 +68,10 @@ namespace iguana::ans {
             compute(p, n);
         }
 
+        explicit statistics(input_stream& s) {
+            deserialize(s);
+        }
+
         ~statistics() = default;      
         statistics(const statistics&) = default;
         statistics& operator =(const statistics&) = default;
@@ -82,7 +91,13 @@ namespace iguana::ans {
             return compute(s.data(), s.size());
         }
 
+        void build_decoding_table(decoding_table& tab) const noexcept;
+
     public:
-        void serialize(byte_buffer& buf) const;
+        void serialize(output_stream& s) const;
+        void deserialize(input_stream& s);
+    
+    private:
+        static std::uint32_t fetch_nibble(input_stream& s, ssize_t& nibidx);
     };
 }

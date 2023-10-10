@@ -12,6 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#include <vector>
 #include "ans_statistics.h"
 #include "utils.h"
 
@@ -19,7 +20,7 @@
 
 namespace iguana::ans {
 
-    class statistics::builder {
+    class iguana_private statistics::builder final {
         friend statistics;
 
     private:
@@ -30,6 +31,12 @@ namespace iguana::ans {
         builder() noexcept = default;
         ~builder() = default;
 
+        builder(const builder&) = delete;   
+        builder& operator =(const builder&) = delete;   
+
+        builder(builder&&) = default;   
+        builder& operator =(builder&&) = default;
+
     public:
         void build(const std::uint8_t *p, std::size_t n) noexcept;
 
@@ -37,6 +44,36 @@ namespace iguana::ans {
         void normalize_freqs() noexcept;
         void calc_cum_freqs() noexcept;
         int compute_histogram(const std::uint8_t *p, std::size_t n) noexcept;
+    };
+
+    //
+
+    class iguana_private statistics::bitstream final {
+  	    std::uint64_t               m_acc = 0; 
+	    int                         m_cnt = 0;
+        std::vector<std::uint8_t>   m_buf;	
+  
+    public:
+        bitstream() = default;
+        ~bitstream() noexcept = default;
+
+        bitstream(const bitstream&) = delete;   
+        bitstream& operator =(const bitstream&) = delete;   
+
+        bitstream(bitstream&&) = default;   
+        bitstream& operator =(bitstream&&) = default;
+
+    public:
+        void append(std::uint32_t v, std::uint32_t k);
+        void flush();
+
+        auto size() const noexcept {
+            return m_buf.size();
+        }
+
+        auto data() const noexcept {
+            return m_buf.data();
+        }
     };
 }
 
@@ -186,112 +223,140 @@ void iguana::ans::statistics::compute(const std::uint8_t *p, std::size_t n) noex
 	}
 }
 
-/*
+void iguana::ans::statistics::serialize(output_stream& s) const {
+    bitstream ctrl;
+    bitstream data;
 
-type ansBitStream struct {
-	acc uint64
-	cnt int
-	buf []byte
-}
+	for(std::size_t i = 0; i != 256; ++i) {
+		const auto f = m_table[i] & frequency_mask;
 
-func (s *ansBitStream) reset() {
-	s.acc = 0
-	s.cnt = 0
-	s.buf = s.buf[:0]
-}
+		// 000 => 0
+		// 001 => 1
+		// 010 => 2
+		// 011 => 3
+		// 100 => 4
+		// 101 => one nibble f - 5
+		// 110 => two nibbles f - 21
+		// 111 => three nibbles f - 277
 
-func (s *ansBitStream) add(v uint32, k uint32) {
-	m := ^(^uint32(0) << k)
-	s.acc |= uint64(v&m) << s.cnt
-	s.cnt += int(k)
-	for s.cnt >= 8 {
-		s.buf = append(s.buf, byte(s.acc))
-		s.acc >>= 8
-		s.cnt -= 8
+		if (f < 5) {
+			ctrl.append(f, 3);
+		} else if (f < 21) {
+			ctrl.append(0b101, 3);
+			data.append(f-5, 4);
+		} else if (f < 277) {
+			ctrl.append(0b110, 3);
+			data.append(f-21, 8);
+		} else {
+			ctrl.append(0b111, 3);
+			data.append(f-277, 12);
+		}
 	}
+
+	ctrl.flush();
+	data.flush();
+    
+	const auto n_ctrl = ctrl.size();
+	const auto n_data = data.size();
+    s.reserve_more(n_ctrl + n_data);
+    s.append_reverse(data.data(), data.size());
+    s.append(ctrl.data(), ctrl.size());
 }
 
-func (s *ansBitStream) flush() {
-	for s.cnt > 0 {
-		s.buf = append(s.buf, byte(s.acc))
-		s.acc >>= 8
-		s.cnt -= 8
-	}
-}
-
-
-func ansDecodeFullTableReference(tab *ANSDenseTable, src []byte) ([]byte, errorCode) {
+void iguana::ans::statistics::deserialize(input_stream& s) {
 	// The code part is encoded as 256 3-bit values, making it 96 bytes in total.
 	// Decoding it in groups of 24 bits is convenient: 8 words at a time.
-	srcLen := len(src)
-	if srcLen < ansCtrlBlockSize {
-		return nil, ecWrongSourceSize
-	}
-	ctrl := src[srcLen-ansCtrlBlockSize:]
-	var freqs [256]uint32
-	nibidx := (srcLen-ansCtrlBlockSize-1)*2 + 1
-	k := 0
-	for i := 0; i < ansCtrlBlockSize; i += 3 {
-		x := uint32(ctrl[i]) | uint32(ctrl[i+1])<<8 | uint32(ctrl[i+2])<<16
-		// Eight 3-bit control words fit within a single 24-bit chunk
-		for j := 0; j != 8; j++ {
-			v := x & 0x07
-			x >>= 3
-			var ec errorCode
-			switch v {
-			case 0b111:
-				// Three nibbles f - 277
-				var x0, x1, x2 uint32
-				x0, nibidx, ec = ansFetchNibble(src, nibidx)
-				if ec != ecOK {
-					return nil, ec
-				}
-				x1, nibidx, ec = ansFetchNibble(src, nibidx)
-				if ec != ecOK {
-					return nil, ec
-				}
-				x2, nibidx, ec = ansFetchNibble(src, nibidx)
-				if ec != ecOK {
-					return nil, ec
-				}
-				freqs[k] = (x0 | (x1 << 4) | (x2 << 8)) + 277
-			case 0b110:
-				// Two nibbles f - 21
-				var x0, x1 uint32
-				x0, nibidx, ec = ansFetchNibble(src, nibidx)
-				if ec != ecOK {
-					return nil, ec
-				}
-				x1, nibidx, ec = ansFetchNibble(src, nibidx)
-				if ec != ecOK {
-					return nil, ec
-				}
-				freqs[k] = (x0 | (x1 << 4)) + 21
-			case 0b101:
-				// One nibble f - 5
-				var x0 uint32
-				x0, nibidx, ec = ansFetchNibble(src, nibidx)
-				if ec != ecOK {
-					return nil, ec
-				}
-				freqs[k] = x0 + 5
-			default:
-				// Explicit encoding of a short value
-				freqs[k] = v
-			}
-			k++
-		}
+
+	const auto src_len = s.size();
+	if (src_len < ctrl_block_size) {
+        throw wrong_source_size_exception();
 	}
 
-	// The normalized frequencies have been recovered. Fill the dense table accordingly.
-	start := uint32(0)
-	for sym, freq := range freqs {
-		for i := uint32(0); i < freq; i++ {
-			slot := start + i
-			tab[slot] = (uint32(sym) << 24) | (i << ansWordMBits) | freq
+    const std::uint8_t* const ctrl = s.data() + src_len - ctrl_block_size;
+	ssize_t nibidx = (src_len - ctrl_block_size - 1) * 2 + 1;
+	std::uint32_t k = 0;
+    
+	for(std::size_t i = 0; i != ctrl_block_size; i += 3) {
+		std::uint32_t x = std::uint32_t(ctrl[i]) | std::uint32_t(ctrl[i+1])<<8 | std::uint32_t(ctrl[i+2]) << 16;
+		// Eight 3-bit control words fit within a single 24-bit chunk
+		for(std::size_t j = 0; j != 8; ++j, ++k) {
+			const auto v = x & 0x07;
+			x >>= 3;
+			switch(v) {
+			case 0b111: {
+				// Three nibbles f - 277
+                const auto x0 = fetch_nibble(s, nibidx);
+                const auto x1 = fetch_nibble(s, nibidx);
+                const auto x2 = fetch_nibble(s, nibidx);
+				m_table[k] = (x0 | (x1 << 4) | (x2 << 8)) + 277;
+            } break;
+
+			case 0b110: {
+				// Two nibbles f - 21
+                const auto x0 = fetch_nibble(s, nibidx);
+                const auto x1 = fetch_nibble(s, nibidx);
+				m_table[k] = (x0 | (x1 << 4)) + 21;
+            } break;
+
+			case 0b101: {
+                // One nibble f - 5
+                const auto x0 = fetch_nibble(s, nibidx);
+                m_table[k] = x0 + 5;
+            } break;
+
+			default:
+				// Explicit encoding of a short value
+				m_table[k] = v;
+                break;
+			}
 		}
-		start += freq
 	}
-	return src[:(nibidx+1)>>1], ecOK
+    s.set_end(s.data() + ((nibidx + 1) >> 1));
 }
-*/
+
+void iguana::ans::statistics::build_decoding_table(decoding_table& tab) const noexcept {
+	// The normalized frequencies have been recovered. Fill the decoding table accordingly.
+    std::size_t start = 0;
+    for(std::uint32_t sym = 0; sym != 256; ++sym) {
+        const auto freq = m_table[sym];
+        for(std::uint32_t i = 0; i < freq; ++i) {
+            const auto slot = start + i;
+            tab[slot] = (sym << 24) | (i << word_M_bits) | freq;
+        }
+        start += freq;
+    }
+}
+
+std::uint32_t iguana::ans::statistics::fetch_nibble(input_stream& s, ssize_t& idx) {
+	if (idx < 0) {
+		throw out_of_input_data_exception();
+	}
+
+    const std::uint8_t x = s[idx >> 1];
+    const auto prev_idx = idx--;
+
+	if ((prev_idx & 0x01) != 0) {
+		return std::uint32_t(x & 0x0f);
+	} else {
+		return std::uint32_t(x >> 4);
+	}        
+}
+
+void iguana::ans::statistics::bitstream::append(std::uint32_t v, std::uint32_t k) {
+	const std::uint32_t m = ~(~std::uint32_t(0) << k);
+	m_acc |= std::uint64_t(v & m) << m_cnt;
+	m_cnt += int(k);
+	while(m_cnt >= 8) {
+		m_buf.push_back(std::uint8_t(m_acc));
+		m_acc >>= 8;
+		m_cnt -= 8;
+	}
+}
+
+void iguana::ans::statistics::bitstream::flush() {
+	while(m_cnt > 0) {
+		m_buf.push_back(std::uint8_t(m_acc));
+		m_acc >>= 8;
+		m_cnt -= 8;
+	}
+}
