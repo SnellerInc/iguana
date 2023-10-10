@@ -16,9 +16,8 @@
 
 //
 
-iguana::ans32::encoder::encoder() noexcept {
+iguana::ans32::encoder::encoder() {
     memory::fill(m_state, ans::word_L);
-    m_buf_fwd.reserve(ans::initial_buffer_size);
     m_buf_rev.reserve(ans::initial_buffer_size);
 }
   
@@ -40,7 +39,7 @@ void iguana::ans32::encoder::put(const std::uint8_t* p, std::size_t avail, const
 			// renormalize
 			auto x = m_state[lane];
 			if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
-				m_buf_fwd.append_big_endian(static_cast<std::uint16_t>(x));
+				m_buf.append_big_endian(static_cast<std::uint16_t>(x));
 				x >>= ans::word_L_bits;
 			}
 			// x = C(s,x)
@@ -67,37 +66,33 @@ void iguana::ans32::encoder::put(const std::uint8_t* p, std::size_t avail, const
 
 void iguana::ans32::encoder::flush() {
 	for(int lane = 15; lane >= 0; --lane) {
-        m_buf_fwd.append_big_endian(m_state[lane]);
+        m_buf.append_big_endian(m_state[lane]);
 	}
 	for(int lane = 16; lane < 32; ++lane) {
         m_buf_rev.append_little_endian(m_state[lane]);
 	}
 }
 
-iguana::error_code iguana::ans32::encoder::encode(const std::uint8_t *src, std::size_t n) {
-    return encode(src, n, ans::statistics(src, n));
-}
-
 iguana::error_code iguana::ans32::encoder::encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
     clear();
     compress(src, n, stats);
-    const auto len_fwd = m_buf_fwd.size();
+    const auto len_fwd = m_buf.size();
 	const auto len_rev = m_buf_rev.size();
-    m_buf_fwd.reserve(len_fwd + len_rev + ans::dense_table_max_length);
+    m_buf.reserve(len_fwd + len_rev + ans::dense_table_max_length);
 /*TODO:
 	// In-place inversion of bufFwd
 	for i, j := 0, lenFwd-1; i < j; i, j = i+1, j-1 {
 		buf[i], buf[j] = buf[j], buf[i]
 	}
 */
-	m_buf_fwd.append(m_buf_rev);
+	m_buf.append(m_buf_rev);
 	return error_code::ok;
 }
 
 void iguana::ans32::encoder::clear() {
     memory::fill(m_state, ans::word_L);
-    m_buf_fwd.clear();
     m_buf_rev.clear();
+    super::clear();
 }
 
 void iguana::ans32::encoder::compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {

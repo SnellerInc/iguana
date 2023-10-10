@@ -12,20 +12,19 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <cstdio>
-#include <cstdlib>
-#include "iguana/error.h"
+#include "ans_statistics.h"
+#include "ans_encoder.h"
 
-// TODO: use a proper makefile
-#include "iguana/ans_statistics.cpp"
-#include "iguana/ans_encoder.cpp"
-#include "iguana/ans_decoder.cpp"
-#include "iguana/ans1.cpp"
-#include "iguana/ans32.cpp"
-#include "iguana/error.cpp"
-#include "iguana/buffer.cpp"
+iguana::ans::encoder::encoder() {
+    m_buf.reserve(ans::initial_buffer_size);
+}
 
-int main(int argc, char *argv[]) {
-    printf("Hello, world\n");
-    return EXIT_SUCCESS;
+iguana::ans::encoder::~encoder() noexcept {}
+
+iguana::error_code iguana::ans::encoder::encode(const std::uint8_t *src, std::size_t n) {
+    return encode(src, n, statistics(src, n));
+}
+
+void iguana::ans::encoder::clear() {
+    m_buf.clear();
 }

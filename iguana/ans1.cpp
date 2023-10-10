@@ -19,6 +19,8 @@ iguana::ans1::encoder::encoder()
     m_buf.reserve(ans::initial_buffer_size);
 }
 
+iguana::ans1::encoder::~encoder() noexcept {}
+
 // This experimental arithmetic compression/decompression functionality is based on
 // the work of Fabian Giesen, available here: https://github.com/rygorous/ryg_rans
 // and kindly placed in the Public Domain per the CC0 licence:
@@ -45,10 +47,6 @@ void iguana::ans1::encoder::flush() {
     m_buf.append_little_endian(m_state);
 }
 
-iguana::error_code iguana::ans1::encoder::encode(const std::uint8_t *src, std::size_t n) {
-    return encode(src, n, ans::statistics(src, n));
-}
-
 iguana::error_code iguana::ans1::encoder::encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
     clear();
     compress(src, n, stats);
@@ -59,7 +57,7 @@ iguana::error_code iguana::ans1::encoder::encode(const std::uint8_t *src, std::s
 
 void iguana::ans1::encoder::clear() {
     m_state = ans::word_L;
-    m_buf.clear();
+    super::clear();
 }
 
 void iguana::ans1::encoder::compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
@@ -73,26 +71,8 @@ void iguana::ans1::encoder::compress_portable(const std::uint8_t *src, std::size
 
 
 
+
 /*
-
-func (e *ANS1Encoder) Encode(src []byte) ([]byte, error) {
-	stats := &e.statbuf
-	stats.observe(src)
-	dst, err := e.EncodeExplicit(src, stats)
-	if err != nil {
-		return dst, err
-	}
-	return stats.Encode(dst), nil
-}
-
-func (e *ANS1Encoder) EncodeExplicit(src []byte, stats *ANSStatistics) ([]byte, error) {
-	// Initialize the rANS encoder
-	e.init(src, stats)
-	ans1Compress(e)
-	lenBuf := len(e.buf)
-	buf := slices.Grow(e.buf, lenBuf+ansDenseTableMaxLength)
-	return buf, nil
-}
 
 func ANS1Decode(src []byte, dstLen int) ([]byte, error) {
 	r, ec := ans1Decode(src, dstLen)

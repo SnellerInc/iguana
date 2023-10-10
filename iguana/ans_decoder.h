@@ -12,20 +12,26 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <cstdio>
-#include <cstdlib>
-#include "iguana/error.h"
+#pragma once
+#include "common.h"
+#include "span.h"
+#include "buffer.h"
+#include "ans_statistics.h"
 
-// TODO: use a proper makefile
-#include "iguana/ans_statistics.cpp"
-#include "iguana/ans_encoder.cpp"
-#include "iguana/ans_decoder.cpp"
-#include "iguana/ans1.cpp"
-#include "iguana/ans32.cpp"
-#include "iguana/error.cpp"
-#include "iguana/buffer.cpp"
+namespace iguana::ans {
+    class iguana_public decoder {
+    protected:
+        decoder();
+        virtual ~decoder() noexcept;
 
-int main(int argc, char *argv[]) {
-    printf("Hello, world\n");
-    return EXIT_SUCCESS;
+    public: 
+        decoder(const decoder&) = delete;
+        decoder& operator =(const decoder&) = delete;
+
+        decoder(decoder&& v) = default;
+        decoder& operator =(decoder&& v) = default;           
+
+    public:
+        
+    };
 }

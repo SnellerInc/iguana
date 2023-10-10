@@ -14,42 +14,38 @@
 
 #pragma once
 #include "common.h"
-#include "ans_encoder.h"
-#include "ans_decoder.h"
+#include "span.h"
+#include "buffer.h"
+#include "ans_statistics.h"
 
-namespace iguana::ans32 {
-
-    class iguana_public encoder final : public ans::encoder {
-        using super = ans::encoder;
-    
-    private:
-        std::uint32_t m_state[32];
-        byte_buffer   m_buf_rev;
+namespace iguana::ans {
+    class iguana_public encoder {
+    protected:
+        byte_buffer m_buf;
+        
+    protected:
+        encoder();
+        virtual ~encoder() noexcept;
 
     public:
-        encoder();
-        ~encoder() noexcept;
-
         encoder(const encoder&) = delete;
         encoder& operator =(const encoder&) = delete;
 
         encoder(encoder&& v) = default;
         encoder& operator =(encoder&& v) = default;
-    
+        
     public:
-        virtual error_code encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) override final;
-        using super::encode;
+        virtual error_code encode(const std::uint8_t *src, std::size_t n, const statistics& stats) = 0;
+        error_code encode(const std::uint8_t *src, std::size_t n);
 
-        virtual void clear() override final;
-
-    private:
-        void compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats);
-
-        void compress(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
-            compress_portable(src, n, stats);
+        error_code encode(const const_byte_span& src, const ans::statistics& stats) {
+            return encode(src.data(), src.size(), stats);
         }
 
-        void put(const std::uint8_t* p, std::size_t avail, const ans::statistics& stats);
-        void flush();
+        error_code encode(const const_byte_span& src) {
+            return encode(src.data(), src.size());
+        }
+
+        virtual void clear() = 0;
     };
 }

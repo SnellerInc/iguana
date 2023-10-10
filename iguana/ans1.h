@@ -14,20 +14,20 @@
 
 #pragma once
 #include "common.h"
-#include "span.h"
-#include "buffer.h"
-#include "ans_statistics.h"
+#include "ans_encoder.h"
+#include "ans_decoder.h"
 
 namespace iguana::ans1 {
 
-    class iguana_public encoder {
+    class iguana_public encoder final : public ans::encoder {
+        using super = ans::encoder;
+
     private:
-	    std::uint32_t   m_state = ans::word_L;
-        byte_buffer     m_buf;
+	    std::uint32_t m_state = ans::word_L;
         
     public:
         encoder();
-        ~encoder() noexcept = default;
+        virtual ~encoder() noexcept;
 
         encoder(const encoder&) = delete;
         encoder& operator =(const encoder&) = delete;
@@ -36,18 +36,10 @@ namespace iguana::ans1 {
         encoder& operator =(encoder&& v) = default;
         
     public:
-        error_code encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats);
-        error_code encode(const std::uint8_t *src, std::size_t n);
+        virtual error_code encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) override final;
+        using super::encode;
 
-        error_code encode(const const_byte_span& src, const ans::statistics& stats) {
-            return encode(src.data(), src.size(), stats);
-        }
-
-        error_code encode(const const_byte_span& src) {
-            return encode(src.data(), src.size());
-        }
-
-        void clear();
+        virtual void clear() override final;
 
     private:
         void compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats);
@@ -62,7 +54,20 @@ namespace iguana::ans1 {
 
     //
 
-    class iguana_public decoder {
+    class iguana_public decoder final : public ans::decoder {
+        using super = ans::decoder;
 
+    private:
+	    std::uint32_t m_state = ans::word_L;
+
+    public: 
+        decoder();
+        virtual ~decoder() noexcept;
+
+        decoder(const decoder&) = delete;
+        decoder& operator =(const decoder&) = delete;
+
+        decoder(decoder&& v) = default;
+        decoder& operator =(decoder&& v) = default;           
     };
 }
