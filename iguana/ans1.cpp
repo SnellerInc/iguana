@@ -64,90 +64,50 @@ iguana::ans1::decoder::decoder() {}
 iguana::ans1::decoder::~decoder() noexcept {}
 
 void iguana::ans1::decoder::decode(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab) {
-    
+    if (const auto ec = decompress(dst, src, tab); ec != error_code::ok) {
+        exception::from_error(ec);
+    }
 }        
 
+iguana::error_code iguana::ans1::decoder::decompress_portable(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab) {
+	const auto src_len = src.size();
 
-
-
-
-/*
-
-func ANS1Decode(src []byte, dstLen int) ([]byte, error) {
-	r, ec := ans1Decode(src, dstLen)
-	if ec != ecOK {
-		return nil, errs[ec]
+	if (src_len < 4) {
+		return error_code::wrong_source_size;
 	}
-	return r, nil
-}
 
-func ANS1DecodeExplicit(src []byte, tab *ANSDenseTable, dstLen int, dst []byte) ([]byte, error) {
-	r, ec := ans1DecodeExplicit(src, tab, dstLen, dst)
-	if ec != ecOK {
-		return nil, errs[ec]
-	}
-	return r, nil
-}
-
-func ans1Decode(src []byte, dstLen int) ([]byte, errorCode) {
-	dst := make([]byte, 0, dstLen)
-	var tab ANSDenseTable
-	data, ec := ansDecodeTable(&tab, src)
-	if ec != ecOK {
-		return nil, ec
-	}
-	return ans1DecodeExplicit(data, &tab, dstLen, dst)
-}
-
-func ans1DecodeExplicit(src []byte, tab *ANSDenseTable, dstLen int, dst []byte) ([]byte, errorCode) {
-	r, ec := ans1Decompress(dst, dstLen, src, tab)
-	if ec != ecOK {
-		return nil, ec
-	}
-	return r, ecOK
-}
-
-func ans1DecompressReference(dst []byte, dstLen int, src []byte, tab *ANSDenseTable) ([]byte, errorCode) {
-	lenSrc := len(src)
-	if lenSrc < 4 {
-		return nil, ecWrongSourceSize
-	}
-	cursorSrc := lenSrc - 4
-	state := binary.LittleEndian.Uint32(src[cursorSrc:])
-	cursorDst := 0
-
-	for {
-		x := state
-		slot := x & (ansWordM - 1)
-		t := tab[slot]
-		freq := uint32(t & (ansWordM - 1))
-		bias := uint32((t >> ansWordMBits) & (ansWordM - 1))
-		// s, x = D(x)
-		state = freq*(x>>ansWordMBits) + bias
-		s := byte(t >> 24)
-		if cursorDst < dstLen {
-			dst = append(dst, s)
-			cursorDst++
-		} else {
-			break
-		}
+	auto cursor_src = src_len - 4;
+	auto state = memory::read_little_endian<std::uint32_t>(src.data() + cursor_src);
+    std::size_t cursor_dst = 0;
+std::size_t dst_len = 11; // TODO: externally provided!!! 
+	for(;;) {
+		{   const std::uint32_t x = state;
+            const auto slot = x & (ans::word_M - 1);
+            const auto t = tab[slot];
+            const auto freq = t & (ans::word_M - 1);
+            const auto bias = (t >> ans::word_M_bits) & (ans::word_M - 1);
+            // s, x = D(x)
+            state = freq * (x >> ans::word_M_bits) + bias;
+            const auto s = std::uint8_t(t >> 24);
+            if (cursor_dst < dst_len) {
+                dst.append(s);
+                ++cursor_dst;
+            } else {
+                break;
+            }
+        }
 
 		// Normalize state
-		if x := state; x < ansWordL {
-			v := binary.LittleEndian.Uint16(src[cursorSrc-2:])
-			cursorSrc -= 2
-			state = (x << ansWordLBits) | uint32(v)
+		if (const auto x = state; x < ans::word_L) {
+			const auto v = memory::read_little_endian<std::uint16_t>(src.data() + cursor_src - 2);
+			cursor_src -= 2;
+			state = (x << ans::word_L_bits) | std::uint32_t(v);
 		}
 	}
-	return dst, ecOK
-}
 
-func init() {
-	if ansWordMBits > 12 {
-		panic("the value of ansWordMBits must not exceed 12")
-	}
-}
+    if (state != ans::word_L) {
+        return error_code::corrupted_bitstream;
+    }
 
-var ans1Compress func(enc *ANS1Encoder) = ans1CompressReference
-var ans1Decompress func(dst []byte, dstLen int, src []byte, tab *ANSDenseTable) ([]byte, errorCode) = ans1DecompressReference
-*/
+	return error_code::ok;
+}

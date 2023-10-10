@@ -44,6 +44,7 @@ namespace iguana::ans32 {
         error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
 
         error_code compress(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
+            // TODO: use an accelerator if allowed by the hardware capabilities
             return compress_portable(dst, stats, src, src_len);
         }
 

@@ -346,6 +346,7 @@ void iguana::ans::statistics::bitstream::append(std::uint32_t v, std::uint32_t k
 	const std::uint32_t m = ~(~std::uint32_t(0) << k);
 	m_acc |= std::uint64_t(v & m) << m_cnt;
 	m_cnt += int(k);
+
 	while(m_cnt >= 8) {
 		m_buf.push_back(std::uint8_t(m_acc));
 		m_acc >>= 8;

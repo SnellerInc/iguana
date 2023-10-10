@@ -29,6 +29,8 @@
 
 #define iguana_private
 
+#define IGUANA_PROCESSOR_LITTLE_ENDIAN  true
+
 namespace iguana {
     using ssize_t = std::make_signed_t<std::size_t>;
 }
