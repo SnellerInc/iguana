@@ -12,28 +12,16 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#pragma once
-#include "common.h"
-#include "span.h"
-#include "buffer.h"
-#include "ans_statistics.h"
-#include "input_stream.h"
 #include "output_stream.h"
 
-namespace iguana::ans {
-    class iguana_public decoder {
-    protected:
-        decoder();
-        virtual ~decoder() noexcept;
-
-    public: 
-        decoder(const decoder&) = delete;
-        decoder& operator =(const decoder&) = delete;
-
-        decoder(decoder&& v) = default;
-        decoder& operator =(decoder&& v) = default;           
-
-    public:
-        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics& stats) = 0;      
-    };
+void iguana::output_stream::append(const value_type* p, size_type n) {
+    for(auto* const e = p + n; p != e; ++p) {
+        append(*p);
+    }
 }
+
+
+void iguana::output_stream::append_reverse(const value_type* p, size_type n) {
+
+}
+

@@ -15,16 +15,14 @@
 #pragma once
 #include "common.h"
 #include "span.h"
-#include "buffer.h"
 #include "ans_statistics.h"
+#include "input_stream.h"
+#include "output_stream.h"
 
 namespace iguana::ans {
-    class iguana_public encoder {
+    class iguana_public encoder {        
     protected:
-        byte_buffer m_buf;
-        
-    protected:
-        encoder();
+        encoder() noexcept {}
         virtual ~encoder() noexcept;
 
     public:
@@ -35,17 +33,15 @@ namespace iguana::ans {
         encoder& operator =(encoder&& v) = default;
         
     public:
-        virtual error_code encode(const std::uint8_t *src, std::size_t n, const statistics& stats) = 0;
-        error_code encode(const std::uint8_t *src, std::size_t n);
+        virtual void encode(output_stream& dst, const statistics& stats, const std::uint8_t *src, std::size_t src_len) = 0;
+        void encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len);
 
-        error_code encode(const const_byte_span& src, const ans::statistics& stats) {
-            return encode(src.data(), src.size(), stats);
+        void encode(output_stream& dst, const ans::statistics& stats, const const_byte_span& src) {
+            encode(dst, stats, src.data(), src.size());
         }
 
-        error_code encode(const const_byte_span& src) {
-            return encode(src.data(), src.size());
+        void encode(output_stream& dst, const const_byte_span& src) {
+            encode(dst, src.data(), src.size());
         }
-
-        virtual void clear() = 0;
     };
 }

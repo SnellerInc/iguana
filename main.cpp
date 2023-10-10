@@ -23,7 +23,7 @@
 #include "iguana/ans1.cpp"
 #include "iguana/ans32.cpp"
 #include "iguana/error.cpp"
-#include "iguana/buffer.cpp"
+#include "iguana/output_stream.cpp"
 
 int main(int argc, char *argv[]) {
     printf("Hello, world\n");

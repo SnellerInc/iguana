@@ -24,7 +24,7 @@ namespace iguana::ans32 {
     
     private:
         std::uint32_t m_state[32];
-        byte_buffer   m_buf_rev;
+        output_stream m_rev;
 
     public:
         encoder();
@@ -37,19 +37,17 @@ namespace iguana::ans32 {
         encoder& operator =(encoder&& v) = default;
     
     public:
-        virtual error_code encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) override final;
+        virtual void encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) override final;
         using super::encode;
 
-        virtual void clear() override final;
-
     private:
-        void compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats);
+        error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
 
-        void compress(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
-            compress_portable(src, n, stats);
+        error_code compress(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
+            return compress_portable(dst, stats, src, src_len);
         }
 
-        void put(const std::uint8_t* p, std::size_t avail, const ans::statistics& stats);
-        void flush();
+        void put(output_stream& dst, const ans::statistics& stats, const std::uint8_t* p, std::size_t n);
+        void flush(output_stream& dst);
     };
 }

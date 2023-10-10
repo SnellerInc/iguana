@@ -14,11 +14,6 @@
 
 #include "ans1.h"
 
-iguana::ans1::encoder::encoder()
-  : m_state(ans::word_L) {
-    m_buf.reserve(ans::initial_buffer_size);
-}
-
 iguana::ans1::encoder::~encoder() noexcept {}
 
 // This experimental arithmetic compression/decompression functionality is based on
@@ -29,45 +24,48 @@ iguana::ans1::encoder::~encoder() noexcept {}
 // For theoretical background, please refer to Jaroslaw Duda's seminal paper on rANS:
 // https://arxiv.org/pdf/1311.2540.pdf
 
-void iguana::ans1::encoder::put(std::uint8_t v, const ans::statistics& stats) {
+void iguana::ans1::encoder::put(output_stream& dst, const ans::statistics& stats, std::uint8_t v) {
 	const auto q = stats[v];
     const auto freq = q & ans::statistics::frequency_mask;
     const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
 	// renormalize
 	auto x = m_state;
 	if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
-		m_buf.append_little_endian(static_cast<std::uint16_t>(x));
+		dst.append_little_endian(static_cast<std::uint16_t>(x));
 		x >>= ans::word_L_bits;
 	}
 	// x = C(s,x)
 	m_state = ((x / freq) << ans::word_M_bits) + (x % freq) + start;
 }
 
-void iguana::ans1::encoder::flush() {
-    m_buf.append_little_endian(m_state);
+void iguana::ans1::encoder::flush(output_stream& dst) {
+    dst.append_little_endian(m_state);
 }
 
-iguana::error_code iguana::ans1::encoder::encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
-    clear();
-    compress(src, n, stats);
-	const auto len_buf = m_buf.size();
-    m_buf.reserve(len_buf + ans::dense_table_max_length);
-	return error_code::ok;
-}
-
-void iguana::ans1::encoder::clear() {
+void iguana::ans1::encoder::encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
     m_state = ans::word_L;
-    super::clear();
+    if (const auto ec = compress(dst, stats, src, src_len); ec != error_code::ok) {
+        exception::from_error(ec);
+    }
+    dst.reserve_more(ans::dense_table_max_length);
 }
 
-void iguana::ans1::encoder::compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
-	for(auto *p = src + n; p > src;) {
-		put(*--p, stats);
+iguana::error_code iguana::ans1::encoder::compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
+	for(auto *p = src + src_len; p > src;) {
+		put(dst, stats, *--p);
 	}
-	flush();
+	flush(dst);
+	return error_code::ok;    
 }
 
 
+iguana::ans1::decoder::decoder() {}
+
+iguana::ans1::decoder::~decoder() noexcept {}
+
+void iguana::ans1::decoder::decode(output_stream& dst, input_stream& src, const ans::statistics& stats) {
+
+}        
 
 
 

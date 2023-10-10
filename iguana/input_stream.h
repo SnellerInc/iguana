@@ -15,25 +15,9 @@
 #pragma once
 #include "common.h"
 #include "span.h"
-#include "buffer.h"
-#include "ans_statistics.h"
-#include "input_stream.h"
-#include "output_stream.h"
 
-namespace iguana::ans {
-    class iguana_public decoder {
-    protected:
-        decoder();
-        virtual ~decoder() noexcept;
+namespace iguana {
+    class iguana_public input_stream {
 
-    public: 
-        decoder(const decoder&) = delete;
-        decoder& operator =(const decoder&) = delete;
-
-        decoder(decoder&& v) = default;
-        decoder& operator =(decoder&& v) = default;           
-
-    public:
-        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics& stats) = 0;      
     };
 }

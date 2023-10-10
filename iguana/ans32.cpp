@@ -18,8 +18,10 @@
 
 iguana::ans32::encoder::encoder() {
     memory::fill(m_state, ans::word_L);
-    m_buf_rev.reserve(ans::initial_buffer_size);
+    m_rev.reserve(ans::initial_buffer_size);
 }
+
+iguana::ans32::encoder::~encoder() noexcept {}
   
 // This experimental arithmetic compression/decompression functionality is based on
 // the work of Fabian Giesen, available here: https://github.com/rygorous/ryg_rans
@@ -29,17 +31,17 @@ iguana::ans32::encoder::encoder() {
 // For theoretical background, please refer to Jaroslaw Duda's seminal paper on rANS:
 // https://arxiv.org/pdf/1311.2540.pdf
 
-void iguana::ans32::encoder::put(const std::uint8_t* p, std::size_t avail, const ans::statistics& stats) {
+void iguana::ans32::encoder::put(output_stream& dst, const ans::statistics& stats, const std::uint8_t* p, std::size_t n) {
 	// the forward half
 	for(int lane = 15; lane >= 0; --lane) {
-		if (lane < avail) {
+		if (lane < n) {
 			const auto q = stats[p[lane]];
 			const auto freq = q & ans::statistics::frequency_mask;
 			const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
 			// renormalize
 			auto x = m_state[lane];
 			if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
-				m_buf.append_big_endian(static_cast<std::uint16_t>(x));
+				dst.append_big_endian(static_cast<std::uint16_t>(x));
 				x >>= ans::word_L_bits;
 			}
 			// x = C(s,x)
@@ -48,14 +50,14 @@ void iguana::ans32::encoder::put(const std::uint8_t* p, std::size_t avail, const
 	}
 	// the reverse half
 	for(int lane = 31; lane >= 16; --lane) {
-		if (lane < avail) {
+		if (lane < n) {
 			const auto q = stats[p[lane]];
 			const auto freq = q & ans::statistics::frequency_mask;
 			const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
 			// renormalize
 			auto x = m_state[lane];
 			if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
-				m_buf_rev.append_little_endian(static_cast<std::uint16_t>(x));
+				m_rev.append_little_endian(static_cast<std::uint16_t>(x));
 				x >>= ans::word_L_bits;
 			}
 			// x = C(s,x)
@@ -64,47 +66,39 @@ void iguana::ans32::encoder::put(const std::uint8_t* p, std::size_t avail, const
 	}
 }
 
-void iguana::ans32::encoder::flush() {
+void iguana::ans32::encoder::flush(output_stream& dst) {
 	for(int lane = 15; lane >= 0; --lane) {
-        m_buf.append_big_endian(m_state[lane]);
+        dst.append_big_endian(m_state[lane]);
 	}
 	for(int lane = 16; lane < 32; ++lane) {
-        m_buf_rev.append_little_endian(m_state[lane]);
+        m_rev.append_little_endian(m_state[lane]);
 	}
 }
 
-iguana::error_code iguana::ans32::encoder::encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
-    clear();
-    compress(src, n, stats);
-    const auto len_fwd = m_buf.size();
-	const auto len_rev = m_buf_rev.size();
-    m_buf.reserve(len_fwd + len_rev + ans::dense_table_max_length);
-/*TODO:
-	// In-place inversion of bufFwd
-	for i, j := 0, lenFwd-1; i < j; i, j = i+1, j-1 {
-		buf[i], buf[j] = buf[j], buf[i]
-	}
-*/
-	m_buf.append(m_buf_rev);
-	return error_code::ok;
-}
-
-void iguana::ans32::encoder::clear() {
+void iguana::ans32::encoder::encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
     memory::fill(m_state, ans::word_L);
-    m_buf_rev.clear();
-    super::clear();
+    m_rev.clear();
+
+    if (const auto ec = compress(dst, stats, src, src_len); ec != error_code::ok) {
+        exception::from_error(ec);
+    }
+
+	const auto len_rev = m_rev.size();
+    dst.reserve_more(len_rev + ans::dense_table_max_length);
+	dst.append_reverse(m_rev.data(), m_rev.size());
 }
 
-void iguana::ans32::encoder::compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
-	const auto n_last = n % 32;
-	long k = n - n_last;
+iguana::error_code iguana::ans32::encoder::compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
+	const auto n_last = src_len % 32;
+	long k = src_len - n_last;
 
 	// Process the last chunk first
-	put(src + k, n_last, stats);
+	put(dst, stats, src + k, n_last);
 
 	// Process the remaining chunks
 	for(k -= 32; k >= 0; k -= 32) {
-		put(src + k, 32, stats);
+		put(dst, stats, src + k, 32);
 	}
-	flush();
+	flush(dst);
+    return error_code::ok;
 }

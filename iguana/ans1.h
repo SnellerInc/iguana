@@ -14,6 +14,7 @@
 
 #pragma once
 #include "common.h"
+#include "error.h"
 #include "ans_encoder.h"
 #include "ans_decoder.h"
 
@@ -26,7 +27,7 @@ namespace iguana::ans1 {
 	    std::uint32_t m_state = ans::word_L;
         
     public:
-        encoder();
+        encoder() noexcept = default;
         virtual ~encoder() noexcept;
 
         encoder(const encoder&) = delete;
@@ -36,20 +37,18 @@ namespace iguana::ans1 {
         encoder& operator =(encoder&& v) = default;
         
     public:
-        virtual error_code encode(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) override final;
+        virtual void encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) override final;
         using super::encode;
 
-        virtual void clear() override final;
-
     private:
-        void compress_portable(const std::uint8_t *src, std::size_t n, const ans::statistics& stats);
+        error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
 
-        void compress(const std::uint8_t *src, std::size_t n, const ans::statistics& stats) {
-            compress_portable(src, n, stats);
+        error_code compress(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
+            return compress_portable(dst, stats, src, src_len);
         }
 
-        void put(std::uint8_t v, const ans::statistics& stats);
-        void flush();
+        void put(output_stream& dst, const ans::statistics& stats, std::uint8_t v);
+        void flush(output_stream& dst);
     };
 
     //
@@ -68,6 +67,10 @@ namespace iguana::ans1 {
         decoder& operator =(const decoder&) = delete;
 
         decoder(decoder&& v) = default;
-        decoder& operator =(decoder&& v) = default;           
+        decoder& operator =(decoder&& v) = default;
+
+    public:
+        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics& stats) override final; 
+        using super::decode;       
     };
 }

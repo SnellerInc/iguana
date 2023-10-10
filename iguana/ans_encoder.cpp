@@ -15,16 +15,8 @@
 #include "ans_statistics.h"
 #include "ans_encoder.h"
 
-iguana::ans::encoder::encoder() {
-    m_buf.reserve(ans::initial_buffer_size);
-}
-
 iguana::ans::encoder::~encoder() noexcept {}
 
-iguana::error_code iguana::ans::encoder::encode(const std::uint8_t *src, std::size_t n) {
-    return encode(src, n, statistics(src, n));
-}
-
-void iguana::ans::encoder::clear() {
-    m_buf.clear();
+void iguana::ans::encoder::encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len) {
+    encode(dst, statistics(src, src_len), src, src_len);
 }
