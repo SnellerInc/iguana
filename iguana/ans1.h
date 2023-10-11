@@ -77,7 +77,7 @@ namespace iguana::ans1 {
         static const internal::initializer<decoder> g_Initializer;
 
     public: 
-        decoder();
+        decoder() {}
         virtual ~decoder() noexcept;
 
         decoder(const decoder&) = delete;

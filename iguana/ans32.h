@@ -24,10 +24,21 @@ namespace iguana::ans32 {
         friend internal::initializer<encoder>;
     
     private:
-        static const internal::initializer<encoder> g_Initializer;
+        struct context final {
+            std::uint32_t           state[32];
+            output_stream&          fwd;
+            output_stream&          rev;
+            const ans::statistics&  stats;
+            const std::uint8_t      *src;
+            std::size_t             src_len;
+            error_code              ec;
+        };
 
     private:
-        std::uint32_t m_state[32];
+       static void (*g_Compress)(context& ctx);
+       static const internal::initializer<encoder> g_Initializer;
+
+    private:
         output_stream m_rev;
 
     public:
@@ -45,17 +56,48 @@ namespace iguana::ans32 {
         using super::encode;
 
     private:
-        error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
-
-        error_code compress(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
-            // TODO: use an accelerator if allowed by the hardware capabilities
-            return compress_portable(dst, stats, src, src_len);
-        }
-
-        void put(output_stream& dst, const ans::statistics& stats, const std::uint8_t* p, std::size_t n);
-        void flush(output_stream& dst);
-
+        static void compress_portable(context& ctx);
+        static void put(context& ctx, const std::uint8_t* p, std::size_t n);
         static void at_process_start();
         static void at_process_end();
     };
+
+    //
+
+    class iguana_public decoder final : public ans::decoder {
+        using super = ans::decoder;
+        friend internal::initializer<decoder>;
+
+    private:
+        struct context final {
+            output_stream&                          dst;
+            std::size_t                             result_size;
+            input_stream&                           src;
+            const ans::statistics::decoding_table&  tab;
+            error_code                              ec;
+        };
+
+    private:
+        static void (*g_Decompress)(context& ctx);
+        static const internal::initializer<decoder> g_Initializer;
+
+    public: 
+        decoder() {}
+        virtual ~decoder() noexcept;
+
+        decoder(const decoder&) = delete;
+        decoder& operator =(const decoder&) = delete;
+
+        decoder(decoder&& v) = default;
+        decoder& operator =(decoder&& v) = default;
+
+    public:
+        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) override final; 
+        using super::decode;       
+
+    private:
+        static void decompress_portable(context& ctx);
+        static void at_process_start();
+        static void at_process_end();
+   };
 }

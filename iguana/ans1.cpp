@@ -33,7 +33,7 @@ iguana::ans1::encoder::~encoder() noexcept {}
 // https://arxiv.org/pdf/1311.2540.pdf
 
 void iguana::ans1::encoder::encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
-    context ctx { dst, stats, src, src_len };
+    context ctx { .dst = dst, .stats = stats, .src = src, .src_len = src_len };
     g_Compress(ctx);
 
     if (ctx.ec != error_code::ok) {
@@ -72,13 +72,11 @@ void iguana::ans1::encoder::at_process_end() {
     printf("iguana::ans1::encoder::at_process_end()\n");
 }
 
-iguana::ans1::decoder::decoder() {}
-
 iguana::ans1::decoder::~decoder() noexcept {}
 
 void iguana::ans1::decoder::decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) {
     dst.reserve_more(result_size);
-    context ctx{ dst, result_size, src, tab };
+    context ctx{ .dst = dst, .result_size = result_size, .src = src, .tab = tab };
     g_Decompress(ctx);
 
     if (ctx.ec != error_code::ok) {
@@ -95,7 +93,8 @@ void iguana::ans1::decoder::decompress_portable(context& ctx) {
 	}
 
 	auto cursor_src = src_len - 4;
-	auto state = memory::read_little_endian<std::uint32_t>(ctx.src.data() + cursor_src);
+    const std::uint8_t* const src = ctx.src.data();
+	auto state = memory::read_little_endian<std::uint32_t>(src + cursor_src);
     std::size_t cursor_dst = 0;
 
 	for(;;) {
@@ -117,7 +116,7 @@ void iguana::ans1::decoder::decompress_portable(context& ctx) {
 
 		// Normalize state
 		if (const auto x = state; x < ans::word_L) {
-			const auto v = memory::read_little_endian<std::uint16_t>(ctx.src.data() + cursor_src - 2);
+			const auto v = memory::read_little_endian<std::uint16_t>(src + cursor_src - 2);
 			cursor_src -= 2;
 			state = (x << ans::word_L_bits) | std::uint32_t(v);
 		}
