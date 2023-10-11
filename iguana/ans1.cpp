@@ -14,6 +14,14 @@
 
 #include "ans1.h"
 
+namespace iguana::ans1 {
+    error_code (*encoder::g_Compress)(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) =
+        &encoder::compress_portable;
+
+    error_code (*decoder::g_Decompress)(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) =
+        & decoder::decompress_portable;
+}
+
 iguana::ans1::encoder::~encoder() noexcept {}
 
 // This experimental arithmetic compression/decompression functionality is based on
@@ -25,7 +33,7 @@ iguana::ans1::encoder::~encoder() noexcept {}
 // https://arxiv.org/pdf/1311.2540.pdf
 
 void iguana::ans1::encoder::encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
-    if (const auto ec = compress(dst, stats, src, src_len); ec != error_code::ok) {
+    if (const auto ec = g_Compress(dst, stats, src, src_len); ec != error_code::ok) {
         exception::from_error(ec);
     }
     dst.reserve_more(ans::dense_table_max_length);
@@ -59,7 +67,7 @@ iguana::ans1::decoder::decoder() {}
 iguana::ans1::decoder::~decoder() noexcept {}
 
 void iguana::ans1::decoder::decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) {
-    if (const auto ec = decompress(dst, result_size, src, tab); ec != error_code::ok) {
+    if (const auto ec = g_Decompress(dst, result_size, src, tab); ec != error_code::ok) {
         exception::from_error(ec);
     }
 }        

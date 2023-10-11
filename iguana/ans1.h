@@ -23,6 +23,9 @@ namespace iguana::ans1 {
     class iguana_public encoder final : public ans::encoder {
         using super = ans::encoder;
         
+    private:
+        static error_code (*g_Compress)(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
+
     public:
         encoder() noexcept = default;
         virtual ~encoder() noexcept;
@@ -39,17 +42,15 @@ namespace iguana::ans1 {
 
     private:
         static error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
-
-        error_code compress(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
-            // TODO: use an accelerator if allowed by the hardware capabilities
-            return compress_portable(dst, stats, src, src_len);
-        }
     };
 
     //
 
     class iguana_public decoder final : public ans::decoder {
         using super = ans::decoder;
+
+    private:
+        static error_code (*g_Decompress)(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
 
     public: 
         decoder();
@@ -67,10 +68,5 @@ namespace iguana::ans1 {
 
     private:
         static error_code decompress_portable(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
-
-        error_code decompress(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) {
-            // TODO: use an accelerator if allowed by the hardware capabilities
-            return decompress_portable(dst, result_size, src, tab);
-        }
     };
 }
