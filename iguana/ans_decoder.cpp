@@ -16,9 +16,9 @@
 
 iguana::ans::decoder::~decoder() noexcept {}
 
-void iguana::ans::decoder::decode(output_stream& dst, input_stream& src) {
+void iguana::ans::decoder::decode(output_stream& dst, std::size_t result_size, input_stream& src) {
     const statistics stats(src);
     statistics::decoding_table tab;
     stats.build_decoding_table(tab);
-    decode(dst, src, tab);
+    decode(dst, result_size, src, tab);
 }        

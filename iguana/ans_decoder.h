@@ -33,7 +33,7 @@ namespace iguana::ans {
         decoder& operator =(decoder&& v) = default;           
 
     public:
-        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab) = 0;      
-        void decode(output_stream& dst, input_stream& src);      
+        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) = 0;      
+        void decode(output_stream& dst, std::size_t result_size, input_stream& src);      
     };
 }

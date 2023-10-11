@@ -22,9 +22,6 @@ namespace iguana::ans1 {
 
     class iguana_public encoder final : public ans::encoder {
         using super = ans::encoder;
-
-    private:
-	    std::uint32_t m_state = ans::word_L;
         
     public:
         encoder() noexcept = default;
@@ -41,15 +38,12 @@ namespace iguana::ans1 {
         using super::encode;
 
     private:
-        error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
+        static error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
 
         error_code compress(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
             // TODO: use an accelerator if allowed by the hardware capabilities
             return compress_portable(dst, stats, src, src_len);
         }
-
-        void put(output_stream& dst, const ans::statistics& stats, std::uint8_t v);
-        void flush(output_stream& dst);
     };
 
     //
@@ -68,15 +62,15 @@ namespace iguana::ans1 {
         decoder& operator =(decoder&& v) = default;
 
     public:
-        virtual void decode(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab) override final; 
+        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) override final; 
         using super::decode;       
 
     private:
-        error_code decompress_portable(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab);
+        static error_code decompress_portable(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
 
-        error_code decompress(output_stream& dst, input_stream& src, const ans::statistics::decoding_table& tab) {
+        error_code decompress(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) {
             // TODO: use an accelerator if allowed by the hardware capabilities
-            return decompress_portable(dst, src, tab);
+            return decompress_portable(dst, result_size, src, tab);
         }
     };
 }
