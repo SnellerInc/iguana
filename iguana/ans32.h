@@ -22,17 +22,7 @@ namespace iguana::ans32 {
     class iguana_public encoder final : public ans::encoder {
         using super = ans::encoder;
         friend internal::initializer<encoder>;
-    
-    private:
-        struct context final {
-            std::uint32_t           state[32];
-            output_stream&          fwd;
-            output_stream&          rev;
-            const ans::statistics&  stats;
-            const std::uint8_t      *src;
-            std::size_t             src_len;
-            error_code              ec;
-        };
+        struct context;
 
     private:
        static void (*g_Compress)(context& ctx);
@@ -64,18 +54,22 @@ namespace iguana::ans32 {
 
     //
 
+    struct encoder::context final {
+        std::uint32_t           state[32];
+        output_stream&          fwd;
+        output_stream&          rev;
+        const ans::statistics&  stats;
+        const std::uint8_t      *src;
+        std::size_t             src_len;
+        error_code              ec;
+    };
+
+    //
+
     class iguana_public decoder final : public ans::decoder {
         using super = ans::decoder;
         friend internal::initializer<decoder>;
-
-    private:
-        struct context final {
-            output_stream&                          dst;
-            std::size_t                             result_size;
-            input_stream&                           src;
-            const ans::statistics::decoding_table&  tab;
-            error_code                              ec;
-        };
+        struct context;
 
     private:
         static void (*g_Decompress)(context& ctx);
@@ -99,5 +93,15 @@ namespace iguana::ans32 {
         static void decompress_portable(context& ctx);
         static void at_process_start();
         static void at_process_end();
-   };
+    };
+
+    //
+
+    struct decoder::context final {
+        output_stream&                          dst;
+        std::size_t                             result_size;
+        input_stream&                           src;
+        const ans::statistics::decoding_table&  tab;
+        error_code                              ec;
+    };
 }

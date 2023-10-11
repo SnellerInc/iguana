@@ -15,6 +15,7 @@
 #pragma once
 #include "common.h"
 #include "span.h"
+#include "error.h"
 #include "input_stream.h"
 #include "output_stream.h"
 
@@ -23,9 +24,8 @@ namespace iguana {
         friend internal::initializer<decoder>;
 
     private:
-        struct context final {
-            
-        };
+        class substream;
+        struct context;
 
     private:
         static void (*g_Decompress)(context& ctx);
@@ -43,7 +43,48 @@ namespace iguana {
 
     private:
         static void decompress_portable(context& ctx);
+//void iguana::decoder::decode(output_stream& dst, input_stream& src, std::uint64_t uncompressed_len, std::int64_t ctrl_cursor) {
+        static std::uint64_t read_control_var_uint(const std::uint8_t* src, std::size_t& cursor);
+        static void wild_copy(output_stream& dst, std::size_t offs, std::size_t len);
         static void at_process_start();
         static void at_process_end();
+    };
+
+    //
+  
+    class decoder::substream final {
+    public:
+        enum : unsigned {
+            tokens = 0,
+	        offset16,
+	        offset24,
+	        var_lit_len,
+	        var_match_len,
+	        literals,
+            //
+	        count
+        };
+
+    public:
+        substream() {}
+        ~substream() noexcept {}
+
+    public:
+        bool empty() const noexcept;
+        std::size_t remaining() const noexcept;
+        std::uint8_t fetch8(error_code& ec) noexcept;
+        std::uint16_t fetch16(error_code& ec) noexcept;
+        std::uint32_t fetch24(error_code& ec) noexcept;
+        std::uint32_t fetch_var_uint(error_code& ec) noexcept;
+        const_byte_span fetch_sequence(std::size_t n, error_code& ec) noexcept;
+    };
+
+    //
+
+    struct decoder::context final {
+        substream       streams[substream::count];
+        output_stream&  dst;
+        std::int64_t    last_offset;
+        error_code      ec;            
     };
 }
