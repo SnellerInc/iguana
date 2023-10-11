@@ -15,27 +15,35 @@
 #pragma once
 #include "common.h"
 #include "span.h"
-#include "ans_statistics.h"
 #include "input_stream.h"
 #include "output_stream.h"
 
-namespace iguana::ans {
+namespace iguana {
     class iguana_public decoder {
-    protected:
-        decoder() {}
+        friend internal::initializer<decoder>;
+
+    private:
+        struct context final {
+            
+        };
+
+    private:
+        static void (*g_Decompress)(context& ctx);
+        static const internal::initializer<decoder> g_Initializer;
 
     public:
-        virtual ~decoder() noexcept;
+        decoder() {}
+        ~decoder() noexcept;
 
-    public: 
         decoder(const decoder&) = delete;
         decoder& operator =(const decoder&) = delete;
 
-        decoder(decoder&& v) = default;
-        decoder& operator =(decoder&& v) = default;           
+        decoder(decoder&&) = default;
+        decoder& operator =(decoder&&) = default;
 
-    public:
-        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) = 0;      
-        void decode(output_stream& dst, std::size_t result_size, input_stream& src);      
+    private:
+        static void decompress_portable(context& ctx);
+        static void at_process_start();
+        static void at_process_end();
     };
 }

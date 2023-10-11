@@ -23,6 +23,8 @@ namespace iguana::ans {
     class iguana_public encoder {        
     protected:
         encoder() noexcept {}
+
+    public:
         virtual ~encoder() noexcept;
 
     public:
