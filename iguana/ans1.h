@@ -22,9 +22,11 @@ namespace iguana::ans1 {
 
     class iguana_public encoder final : public ans::encoder {
         using super = ans::encoder;
-        
+        friend internal::initializer<encoder>;
+
     private:
         static error_code (*g_Compress)(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
+        static const internal::initializer<encoder> g_Initializer;
 
     public:
         encoder() noexcept = default;
@@ -42,15 +44,19 @@ namespace iguana::ans1 {
 
     private:
         static error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
+        static void at_process_start();
+        static void at_process_end();
     };
 
     //
 
     class iguana_public decoder final : public ans::decoder {
         using super = ans::decoder;
+        friend internal::initializer<decoder>;
 
     private:
         static error_code (*g_Decompress)(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
+        static const internal::initializer<decoder> g_Initializer;
 
     public: 
         decoder();
@@ -68,5 +74,7 @@ namespace iguana::ans1 {
 
     private:
         static error_code decompress_portable(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
-    };
+        static void at_process_start();
+        static void at_process_end();
+   };
 }

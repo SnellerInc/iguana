@@ -18,8 +18,12 @@ namespace iguana::ans1 {
     error_code (*encoder::g_Compress)(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) =
         &encoder::compress_portable;
 
+    const internal::initializer<encoder> encoder::g_Initializer;
+
     error_code (*decoder::g_Decompress)(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) =
         & decoder::decompress_portable;
+
+    const internal::initializer<decoder> decoder::g_Initializer;
 }
 
 iguana::ans1::encoder::~encoder() noexcept {}
@@ -61,6 +65,13 @@ iguana::error_code iguana::ans1::encoder::compress_portable(output_stream& dst, 
 	return error_code::ok;    
 }
 
+void iguana::ans1::encoder::at_process_start() {
+    printf("iguana::ans1::encoder::at_process_start()\n");
+}
+
+void iguana::ans1::encoder::at_process_end() {
+    printf("iguana::ans1::encoder::at_process_end()\n");
+}
 
 iguana::ans1::decoder::decoder() {}
 
@@ -113,4 +124,12 @@ iguana::error_code iguana::ans1::decoder::decompress_portable(output_stream& dst
     }
 
 	return error_code::ok;
+}
+
+void iguana::ans1::decoder::at_process_start() {
+    printf("iguana::ans1::decoder::at_process_start()\n");
+}
+
+void iguana::ans1::decoder::at_process_end() {
+    printf("iguana::ans1::decoder::at_process_end()\n");
 }

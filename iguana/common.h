@@ -33,4 +33,25 @@
 
 namespace iguana {
     using ssize_t = std::make_signed_t<std::size_t>;
+
+    namespace internal {
+        template <
+            typename T
+        > class initializer final {
+        public:
+            initializer() noexcept {
+                T::at_process_start();
+            }
+
+            ~initializer() noexcept {
+                T::at_process_end();
+            }
+      
+            initializer(const initializer&) = delete;
+            initializer& operator =(const initializer&) = delete;
+
+            initializer(initializer&&) = delete;
+            initializer& operator =(initializer&&) = delete;
+        };
+    }
 }
