@@ -15,14 +15,10 @@
 #include "ans1.h"
 
 namespace iguana::ans1 {
-    error_code (*encoder::g_Compress)(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) =
-        &encoder::compress_portable;
-
+    void (*encoder::g_Compress)(context& ctx) = &encoder::compress_portable;
     const internal::initializer<encoder> encoder::g_Initializer;
 
-    error_code (*decoder::g_Decompress)(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) =
-        & decoder::decompress_portable;
-
+    void (*decoder::g_Decompress)(context& ctx) = &decoder::decompress_portable;
     const internal::initializer<decoder> decoder::g_Initializer;
 }
 
@@ -37,32 +33,35 @@ iguana::ans1::encoder::~encoder() noexcept {}
 // https://arxiv.org/pdf/1311.2540.pdf
 
 void iguana::ans1::encoder::encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
-    if (const auto ec = g_Compress(dst, stats, src, src_len); ec != error_code::ok) {
-        exception::from_error(ec);
+    context ctx { dst, stats, src, src_len };
+    g_Compress(ctx);
+
+    if (ctx.ec != error_code::ok) {
+        exception::from_error(ctx.ec);
     }
     dst.reserve_more(ans::dense_table_max_length);
 }
 
-iguana::error_code iguana::ans1::encoder::compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
+void iguana::ans1::encoder::compress_portable(context& ctx) {
     std::uint32_t state = ans::word_L;
     
-	for(auto *p = src + src_len; p > src;) {
+	for(auto *p = ctx.src + ctx.src_len; p > ctx.src;) {
         const std::uint8_t v = *--p;
-        const auto q = stats[v];
+        const auto q = ctx.stats[v];
         const auto freq = q & ans::statistics::frequency_mask;
         const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
         // renormalize
         auto x = state;
         if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
-            dst.append_little_endian(static_cast<std::uint16_t>(x));
+            ctx.dst.append_little_endian(static_cast<std::uint16_t>(x));
             x >>= ans::word_L_bits;
         }
         // x = C(s,x)
         state = ((x / freq) << ans::word_M_bits) + (x % freq) + start;
 	}
 
-    dst.append_little_endian(state);
-	return error_code::ok;    
+    ctx.dst.append_little_endian(state);
+	ctx.ec = error_code::ok;    
 }
 
 void iguana::ans1::encoder::at_process_start() {
@@ -78,33 +77,38 @@ iguana::ans1::decoder::decoder() {}
 iguana::ans1::decoder::~decoder() noexcept {}
 
 void iguana::ans1::decoder::decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) {
-    if (const auto ec = g_Decompress(dst, result_size, src, tab); ec != error_code::ok) {
-        exception::from_error(ec);
+    dst.reserve_more(result_size);
+    context ctx{ dst, result_size, src, tab };
+    g_Decompress(ctx);
+
+    if (ctx.ec != error_code::ok) {
+        exception::from_error(ctx.ec);
     }
 }        
 
-iguana::error_code iguana::ans1::decoder::decompress_portable(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) {
-	const auto src_len = src.size();
+void iguana::ans1::decoder::decompress_portable(context& ctx) {
+	const auto src_len = ctx.src.size();
 
 	if (src_len < 4) {
-		return error_code::wrong_source_size;
+		ctx.ec = error_code::wrong_source_size;
+        return;
 	}
 
 	auto cursor_src = src_len - 4;
-	auto state = memory::read_little_endian<std::uint32_t>(src.data() + cursor_src);
+	auto state = memory::read_little_endian<std::uint32_t>(ctx.src.data() + cursor_src);
     std::size_t cursor_dst = 0;
 
 	for(;;) {
 		{   const std::uint32_t x = state;
             const auto slot = x & (ans::word_M - 1);
-            const auto t = tab[slot];
+            const auto t = ctx.tab[slot];
             const auto freq = t & (ans::word_M - 1);
             const auto bias = (t >> ans::word_M_bits) & (ans::word_M - 1);
             // s, x = D(x)
             state = freq * (x >> ans::word_M_bits) + bias;
             const auto s = std::uint8_t(t >> 24);
-            if (cursor_dst < result_size) {
-                dst.append(s);
+            if (cursor_dst < ctx.result_size) {
+                ctx.dst.append(s);
                 ++cursor_dst;
             } else {
                 break;
@@ -113,17 +117,18 @@ iguana::error_code iguana::ans1::decoder::decompress_portable(output_stream& dst
 
 		// Normalize state
 		if (const auto x = state; x < ans::word_L) {
-			const auto v = memory::read_little_endian<std::uint16_t>(src.data() + cursor_src - 2);
+			const auto v = memory::read_little_endian<std::uint16_t>(ctx.src.data() + cursor_src - 2);
 			cursor_src -= 2;
 			state = (x << ans::word_L_bits) | std::uint32_t(v);
 		}
 	}
 
     if (state != ans::word_L) {
-        return error_code::corrupted_bitstream;
+        ctx.ec = error_code::corrupted_bitstream;
+        return;
     }
 
-	return error_code::ok;
+	ctx.ec = error_code::ok;
 }
 
 void iguana::ans1::decoder::at_process_start() {

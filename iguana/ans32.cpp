@@ -16,6 +16,20 @@
 
 //
 
+namespace iguana::ans32 {
+//    error_code (*encoder::g_Compress)(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) =
+  //      &encoder::compress_portable;
+
+    const internal::initializer<encoder> encoder::g_Initializer;
+
+    //error_code (*decoder::g_Decompress)(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) =
+      //  & decoder::decompress_portable;
+
+    //const internal::initializer<decoder> decoder::g_Initializer;
+}
+
+//
+
 iguana::ans32::encoder::encoder() {
     memory::fill(m_state, ans::word_L);
     m_rev.reserve(ans::initial_buffer_size);
@@ -102,3 +116,12 @@ iguana::error_code iguana::ans32::encoder::compress_portable(output_stream& dst,
 	flush(dst);
     return error_code::ok;
 }
+
+void iguana::ans32::encoder::at_process_start() {
+    printf("iguana::ans32::encoder::at_process_start()\n");
+}
+
+void iguana::ans32::encoder::at_process_end() {
+    printf("iguana::ans32::encoder::at_process_end()\n");
+}
+

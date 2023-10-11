@@ -21,7 +21,11 @@ namespace iguana::ans32 {
 
     class iguana_public encoder final : public ans::encoder {
         using super = ans::encoder;
+        friend internal::initializer<encoder>;
     
+    private:
+        static const internal::initializer<encoder> g_Initializer;
+
     private:
         std::uint32_t m_state[32];
         output_stream m_rev;
@@ -50,5 +54,8 @@ namespace iguana::ans32 {
 
         void put(output_stream& dst, const ans::statistics& stats, const std::uint8_t* p, std::size_t n);
         void flush(output_stream& dst);
+
+        static void at_process_start();
+        static void at_process_end();
     };
 }

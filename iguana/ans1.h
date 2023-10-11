@@ -25,7 +25,16 @@ namespace iguana::ans1 {
         friend internal::initializer<encoder>;
 
     private:
-        static error_code (*g_Compress)(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
+        struct context final {
+            output_stream&          dst;
+            const ans::statistics&  stats;
+            const std::uint8_t      *src;
+            std::size_t             src_len;
+            error_code              ec;
+        };
+
+    private:
+        static void (*g_Compress)(context& ctx);
         static const internal::initializer<encoder> g_Initializer;
 
     public:
@@ -43,7 +52,7 @@ namespace iguana::ans1 {
         using super::encode;
 
     private:
-        static error_code compress_portable(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
+        static void compress_portable(context& ctx);
         static void at_process_start();
         static void at_process_end();
     };
@@ -55,7 +64,16 @@ namespace iguana::ans1 {
         friend internal::initializer<decoder>;
 
     private:
-        static error_code (*g_Decompress)(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
+        struct context final {
+            output_stream&                          dst;
+            std::size_t                             result_size;
+            input_stream&                           src;
+            const ans::statistics::decoding_table&  tab;
+            error_code                              ec;
+        };
+
+    private:
+        static void (*g_Decompress)(context& ctx);
         static const internal::initializer<decoder> g_Initializer;
 
     public: 
@@ -73,7 +91,7 @@ namespace iguana::ans1 {
         using super::decode;       
 
     private:
-        static error_code decompress_portable(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
+        static void decompress_portable(context& ctx);
         static void at_process_start();
         static void at_process_end();
    };
