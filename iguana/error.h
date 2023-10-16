@@ -38,6 +38,7 @@ namespace iguana {
 
     protected:
         exception() {}
+        explicit exception(const char* msg) : super(msg) {}
 
     public:
         virtual ~exception();
@@ -52,7 +53,11 @@ namespace iguana {
         using super = exception;
 
     public:
-        using super::super;
+        template <
+            typename... TA
+        > explicit corrupted_bitstream_exception(TA&&... args)
+          : super(std::forward<TA>(args)...) {}
+
         virtual ~corrupted_bitstream_exception();
     };
 
@@ -62,7 +67,11 @@ namespace iguana {
         using super = exception;
 
     public:
-        using super::super;
+        template <
+            typename... TA
+        > explicit wrong_source_size_exception(TA&&... args)
+          : super(std::forward<TA>(args)...) {}
+
         virtual ~wrong_source_size_exception();
     };
 
@@ -72,7 +81,11 @@ namespace iguana {
         using super = exception;
 
     public:
-        using super::super;
+        template <
+            typename... TA
+        > explicit out_of_input_data_exception(TA&&... args)
+          : super(std::forward<TA>(args)...) {}
+
         virtual ~out_of_input_data_exception();
     };
 
@@ -82,7 +95,11 @@ namespace iguana {
         using super = exception;
 
     public:
-        using super::super;
+        template <
+            typename... TA
+        > explicit insufficient_target_capacity_exception(TA&&... args)
+          : super(std::forward<TA>(args)...) {}
+
         virtual ~insufficient_target_capacity_exception();
     };
 
@@ -92,7 +109,11 @@ namespace iguana {
         using super = exception;
 
     public:
-        using super::super;
+        template <
+            typename... TA
+        > explicit unrecognized_command_exception(TA&&... args)
+          : super(std::forward<TA>(args)...) {}
+
         virtual ~unrecognized_command_exception();
     };
 }
