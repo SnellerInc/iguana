@@ -21,4 +21,4 @@ void iguana::ans::decoder::decode(output_stream& dst, std::size_t result_size, i
     statistics::decoding_table tab;
     stats.build_decoding_table(tab);
     decode(dst, result_size, src, tab);
-}        
+}

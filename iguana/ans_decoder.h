@@ -20,22 +20,22 @@
 #include "output_stream.h"
 
 namespace iguana::ans {
-    class iguana_public decoder {
+    class IGUANA_API decoder {
     protected:
         decoder() {}
 
     public:
         virtual ~decoder() noexcept;
 
-    public: 
+    public:
         decoder(const decoder&) = delete;
         decoder& operator =(const decoder&) = delete;
 
         decoder(decoder&& v) = default;
-        decoder& operator =(decoder&& v) = default;           
+        decoder& operator =(decoder&& v) = default;
 
     public:
-        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) = 0;      
-        void decode(output_stream& dst, std::size_t result_size, input_stream& src);      
+        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) = 0;
+        void decode(output_stream& dst, std::size_t result_size, input_stream& src);
     };
 }

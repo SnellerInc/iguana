@@ -20,7 +20,7 @@
 #include "output_stream.h"
 
 namespace iguana::ans {
-    class iguana_public encoder {        
+    class IGUANA_API encoder {
     protected:
         encoder() noexcept {}
 
@@ -33,7 +33,7 @@ namespace iguana::ans {
 
         encoder(encoder&& v) = default;
         encoder& operator =(encoder&& v) = default;
-        
+
     public:
         virtual void encode(output_stream& dst, const statistics& stats, const std::uint8_t *src, std::size_t src_len) = 0;
         void encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len);
