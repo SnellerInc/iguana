@@ -50,7 +50,7 @@ void iguana::decoder::decode(output_stream& dst, input_stream& src) {
 	}
 
     dst.reserve_more(uncompressed_len);
-    
+
 /*TODO
 	dst, ec = d.decode(uncompressedLen, cursor, dst, src)
 	if ec != ecOK {
@@ -71,7 +71,7 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 	var ec errorCode
 */
 	// Fetch the header
-	
+
 	for(std::uint64_t data_cursor = 0;;) {
 		if (ctrl_cursor < 0) {
             throw out_of_input_data_exception();
@@ -89,7 +89,7 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
                 const std::uint64_t len_uncompressed = read_control_var_uint(src, ctrl_cursor);
                 const std::uint64_t len_compressed = read_control_var_uint(src, ctrl_cursor);
                 const std::uint8_t * const ans = src + data_cursor;
-                        
+
 /*TODO
 
                 ans := src[dataCursor : dataCursor+lenCompressed]
@@ -278,7 +278,7 @@ void iguana::decoder::decompress_portable(context& ctx) {
 	// flag 0-30    - 24-bit offset,  31 match lengths (16-46),    no literal length
 
     auto last_offs = ctx.last_offset;
-    
+
 	// Main Loop : decode sequences
 	while(!ctx.streams[substream::tokens].empty()) {
 		//get literal length

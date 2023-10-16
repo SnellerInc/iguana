@@ -20,21 +20,21 @@
 
 namespace iguana::ans {
 
-    class iguana_private statistics::builder final {
+    class statistics::builder final {
         friend statistics;
 
     private:
         std::array<std::uint32_t, 256>  m_freqs;
-        std::array<std::uint32_t, 257>  m_cum_freqs;   
+        std::array<std::uint32_t, 257>  m_cum_freqs;
 
     public:
         builder() noexcept = default;
         ~builder() = default;
 
-        builder(const builder&) = delete;   
-        builder& operator =(const builder&) = delete;   
+        builder(const builder&) = delete;
+        builder& operator =(const builder&) = delete;
 
-        builder(builder&&) = default;   
+        builder(builder&&) = default;
         builder& operator =(builder&&) = default;
 
     public:
@@ -48,19 +48,19 @@ namespace iguana::ans {
 
     //
 
-    class iguana_private statistics::bitstream final {
-  	    std::uint64_t               m_acc = 0; 
+    class statistics::bitstream final {
+  	    std::uint64_t               m_acc = 0;
 	    int                         m_cnt = 0;
-        std::vector<std::uint8_t>   m_buf;	
-  
+        std::vector<std::uint8_t>   m_buf;
+
     public:
         bitstream() = default;
         ~bitstream() noexcept = default;
 
-        bitstream(const bitstream&) = delete;   
-        bitstream& operator =(const bitstream&) = delete;   
+        bitstream(const bitstream&) = delete;
+        bitstream& operator =(const bitstream&) = delete;
 
-        bitstream(bitstream&&) = default;   
+        bitstream(bitstream&&) = default;
         bitstream& operator =(bitstream&&) = default;
 
     public:
@@ -78,8 +78,8 @@ namespace iguana::ans {
 }
 
 void iguana::ans::statistics::builder::build(const std::uint8_t *p, std::size_t n) noexcept {
-    memory::zero(m_freqs); 
-    memory::zero(m_cum_freqs); 
+    memory::zero(m_freqs);
+    memory::zero(m_cum_freqs);
 
 	if (n == 0) {
 		// Edge case #1: empty input. Arbitrarily assign probability 1/2 to the last two symbols
@@ -120,7 +120,7 @@ void iguana::ans::statistics::builder::build(const std::uint8_t *p, std::size_t 
 }
 
 void iguana::ans::statistics::builder::normalize_freqs() noexcept {
-    calc_cum_freqs();        
+    calc_cum_freqs();
 	const std::size_t target_total = word_M;
 	const std::size_t cur_total = m_cum_freqs[256]; // TODO: prefix sum
 
@@ -186,7 +186,7 @@ int iguana::ans::statistics::builder::compute_histogram(const std::uint8_t *p, s
 	std::size_t partial[4][256];
     memory::zero(partial);
     auto k = utils::align_down(n, 4);
-    
+
 	for(std::size_t i = 0; i != k; i += 4) {
 		++partial[0][p[i+0]];
 		++partial[1][p[i+1]];
@@ -211,13 +211,13 @@ int iguana::ans::statistics::builder::compute_histogram(const std::uint8_t *p, s
 		}
 	}
 
-    return -1; // Unreachable, as the n == 0 case was handled at the beginning    
+    return -1; // Unreachable, as the n == 0 case was handled at the beginning
 }
 
 void iguana::ans::statistics::compute(const std::uint8_t *p, std::size_t n) noexcept {
     builder bld;
     bld.build(p, n);
-    
+
 	for(std::size_t i = 0; i != 256; ++i) {
 		m_table[i] = (bld.m_cum_freqs[i] << cumulative_frequency_bits) | bld.m_freqs[i];
 	}
@@ -255,7 +255,7 @@ void iguana::ans::statistics::serialize(output_stream& s) const {
 
 	ctrl.flush();
 	data.flush();
-    
+
 	const auto n_ctrl = ctrl.size();
 	const auto n_data = data.size();
     s.reserve_more(n_ctrl + n_data);
@@ -275,7 +275,7 @@ void iguana::ans::statistics::deserialize(input_stream& s) {
     const std::uint8_t* const ctrl = s.data() + src_len - ctrl_block_size;
 	ssize_t nibidx = (src_len - ctrl_block_size - 1) * 2 + 1;
 	std::uint32_t k = 0;
-    
+
 	for(std::size_t i = 0; i != ctrl_block_size; i += 3) {
 		std::uint32_t x = std::uint32_t(ctrl[i]) | std::uint32_t(ctrl[i+1])<<8 | std::uint32_t(ctrl[i+2]) << 16;
 		// Eight 3-bit control words fit within a single 24-bit chunk
@@ -339,7 +339,7 @@ std::uint32_t iguana::ans::statistics::fetch_nibble(input_stream& s, ssize_t& id
 		return std::uint32_t(x & 0x0f);
 	} else {
 		return std::uint32_t(x >> 4);
-	}        
+	}
 }
 
 void iguana::ans::statistics::bitstream::append(std::uint32_t v, std::uint32_t k) {

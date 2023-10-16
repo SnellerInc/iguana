@@ -20,7 +20,7 @@
 #include "output_stream.h"
 
 namespace iguana {
-    class iguana_public decoder {
+    class IGUANA_API decoder {
         friend internal::initializer<decoder>;
 
     private:
@@ -51,7 +51,7 @@ namespace iguana {
     };
 
     //
-  
+
     class decoder::substream final {
     public:
         enum : unsigned {
@@ -85,6 +85,6 @@ namespace iguana {
         substream       streams[substream::count];
         output_stream&  dst;
         std::int64_t    last_offset;
-        error_code      ec;            
+        error_code      ec;
     };
 }

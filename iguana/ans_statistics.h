@@ -36,10 +36,10 @@ namespace iguana::ans {
     //
 
     constexpr inline static std::size_t initial_buffer_size = 1 << 20;
-    
+
     //
 
-    class iguana_public statistics {
+    class IGUANA_API statistics {
         class builder;
         class bitstream;
 
@@ -55,14 +55,14 @@ namespace iguana::ans {
     public:
         std::array<std::uint32_t, 256> m_table;
 
-    public:   
+    public:
         statistics() noexcept {
-            memory::zero(m_table); 
+            memory::zero(m_table);
         }
 
         explicit statistics(const_byte_span s) noexcept
           : statistics(s.data(), s.size()) {}
-        
+
         statistics(const std::uint8_t *p, std::size_t n) noexcept
           : statistics() {
             compute(p, n);
@@ -72,7 +72,7 @@ namespace iguana::ans {
             deserialize(s);
         }
 
-        ~statistics() = default;      
+        ~statistics() = default;
         statistics(const statistics&) = default;
         statistics& operator =(const statistics&) = default;
         statistics(statistics&&) = default;
@@ -80,7 +80,7 @@ namespace iguana::ans {
 
     public:
         std::uint32_t operator [](std::size_t k) const noexcept {
-            assert(k < m_table.size());  
+            assert(k < m_table.size());
             return m_table[k];
         }
 
@@ -96,7 +96,7 @@ namespace iguana::ans {
     public:
         void serialize(output_stream& s) const;
         void deserialize(input_stream& s);
-    
+
     private:
         static std::uint32_t fetch_nibble(input_stream& s, ssize_t& nibidx);
     };

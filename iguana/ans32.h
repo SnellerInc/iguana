@@ -19,7 +19,7 @@
 
 namespace iguana::ans32 {
 
-    class iguana_public encoder final : public ans::encoder {
+    class IGUANA_API encoder final : public ans::encoder {
         using super = ans::encoder;
         friend internal::initializer<encoder>;
         struct context;
@@ -40,7 +40,7 @@ namespace iguana::ans32 {
 
         encoder(encoder&& v) = default;
         encoder& operator =(encoder&& v) = default;
-    
+
     public:
         virtual void encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) override final;
         using super::encode;
@@ -66,7 +66,7 @@ namespace iguana::ans32 {
 
     //
 
-    class iguana_public decoder final : public ans::decoder {
+    class IGUANA_API decoder final : public ans::decoder {
         using super = ans::decoder;
         friend internal::initializer<decoder>;
         struct context;
@@ -75,7 +75,7 @@ namespace iguana::ans32 {
         static void (*g_Decompress)(context& ctx);
         static const internal::initializer<decoder> g_Initializer;
 
-    public: 
+    public:
         decoder() {}
         virtual ~decoder() noexcept;
 
@@ -86,8 +86,8 @@ namespace iguana::ans32 {
         decoder& operator =(decoder&& v) = default;
 
     public:
-        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) override final; 
-        using super::decode;       
+        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) override final;
+        using super::decode;
 
     private:
         static void decompress_portable(context& ctx);

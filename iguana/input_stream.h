@@ -17,20 +17,20 @@
 #include "span.h"
 
 namespace iguana {
-    class iguana_public input_stream {
+    class IGUANA_API input_stream {
         const std::uint8_t* m_start = nullptr;
         const std::uint8_t* m_end   = nullptr;
 
     public:
-        input_stream() noexcept = default;            
+        input_stream() noexcept = default;
 
-        input_stream(const std::uint8_t* s, const std::uint8_t* e) noexcept 
+        input_stream(const std::uint8_t* s, const std::uint8_t* e) noexcept
           : m_start(s)
-          , m_end(e) {}       
+          , m_end(e) {}
 
-        input_stream(const std::uint8_t* s, std::size_t n) noexcept 
+        input_stream(const std::uint8_t* s, std::size_t n) noexcept
           : m_start(s)
-          , m_end(s + n) {}      
+          , m_end(s + n) {}
 
         ~input_stream() noexcept = default;
 
@@ -47,7 +47,7 @@ namespace iguana {
         }
 
         std::size_t size() const noexcept {
-            return m_end - m_start;
+            return size_t(m_end - m_start);
         }
 
         const std::uint8_t* data() const noexcept {

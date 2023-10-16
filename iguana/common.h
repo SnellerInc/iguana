@@ -14,22 +14,35 @@
 
 #pragma once
 
+#if !defined(IGUANA_STATIC)
+  #if defined(_WIN32) && (defined(_MSC_VER) || defined(__MINGW32__))
+    #ifdef IGUANA_EXPORTS
+      #define IGUANA_API __declspec(dllexport)
+    #else
+      #define IGUANA_API __declspec(dllimport)
+    #endif
+  #elif defined(_WIN32) && defined(__GNUC__)
+    #ifdef IGUANA_EXPORTS
+      #define IGUANA_API __attribute__((__dllexport__))
+    #else
+      #define IGUANA_API __attribute__((__dllimport__))
+    #endif
+  #elif defined(__GNUC__)
+    #define IGUANA_API __attribute__((__visibility__("default")))
+  #endif
+#endif
+
+// Not defined for static builds, we just define it to nothing.
+#if !defined(IGUANA_API)
+  #define IGUANA_API
+#endif
+
+#include <stdint.h>
 #include <cstdint>
 #include <cassert>
 #include <type_traits>
 
-#define iguana_export   __declspec(dllexport) // TODO: compiler-specific
-#define iguana_import   __declspec(dllimport) // TODO: compiler-specific
-
-#if defined(IGUANA_BUILDING_DLL)
-    #define iguana_public   iguana_export
-#else
-    #define iguana_public   iguana_import
-#endif
-
-#define iguana_private
-
-#define IGUANA_PROCESSOR_LITTLE_ENDIAN  true
+#define IGUANA_PROCESSOR_LITTLE_ENDIAN true
 
 namespace iguana {
     using ssize_t = std::make_signed_t<std::size_t>;
@@ -46,7 +59,7 @@ namespace iguana {
             ~initializer() noexcept {
                 T::at_process_end();
             }
-      
+
             initializer(const initializer&) = delete;
             initializer& operator =(const initializer&) = delete;
 

@@ -33,66 +33,66 @@ namespace iguana {
 
     //
 
-    class iguana_public exception : public std::exception {
+    class IGUANA_API exception : public std::exception {
         using super = std::exception;
 
     protected:
         exception() {}
-       
+
     public:
         virtual ~exception();
 
     public:
-        [[noreturn]] static void from_error(error_code ec);  
+        [[noreturn]] static void from_error(error_code ec);
     };
 
     //
 
-    class iguana_public corrupted_bitstream_exception : public exception {
+    class IGUANA_API corrupted_bitstream_exception : public exception {
         using super = exception;
 
     public:
         using super::super;
-        virtual ~corrupted_bitstream_exception();    
+        virtual ~corrupted_bitstream_exception();
     };
 
     //
 
-    class iguana_public wrong_source_size_exception : public exception {
+    class IGUANA_API wrong_source_size_exception : public exception {
         using super = exception;
 
     public:
         using super::super;
-        virtual ~wrong_source_size_exception();    
+        virtual ~wrong_source_size_exception();
     };
 
     //
 
-    class iguana_public out_of_input_data_exception : public exception {
+    class IGUANA_API out_of_input_data_exception : public exception {
         using super = exception;
 
     public:
         using super::super;
-        virtual ~out_of_input_data_exception();    
+        virtual ~out_of_input_data_exception();
     };
 
     //
 
-    class iguana_public insufficient_target_capacity_exception : public exception {
+    class IGUANA_API insufficient_target_capacity_exception : public exception {
         using super = exception;
 
     public:
         using super::super;
-        virtual ~insufficient_target_capacity_exception();    
+        virtual ~insufficient_target_capacity_exception();
     };
 
     //
 
-    class iguana_public unrecognized_command_exception : public exception {
+    class IGUANA_API unrecognized_command_exception : public exception {
         using super = exception;
 
     public:
         using super::super;
-        virtual ~unrecognized_command_exception();    
+        virtual ~unrecognized_command_exception();
     };
 }

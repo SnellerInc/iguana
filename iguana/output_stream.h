@@ -18,7 +18,7 @@
 #include "span.h"
 
 namespace iguana {
-    class iguana_public output_stream final {
+    class IGUANA_API output_stream final {
     public:
         using value_type = std::uint8_t;
         using size_type  = std::size_t;
