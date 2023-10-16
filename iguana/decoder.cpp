@@ -15,6 +15,9 @@
 #include "decoder.h"
 #include "command.h"
 #include "entropy.h"
+#include "ans1.h"
+#include "ans32.h"
+#include "ans_nibble.h"
 
 //
 
@@ -69,6 +72,7 @@ std::uint64_t iguana::decoder::read_control_var_uint(const std::uint8_t* src, ss
 }
 
 void iguana::decoder::decompress(output_stream& dst, const std::uint8_t* const src, std::uint64_t uncompressed_len, ssize_t& ctrl_cursor) {
+    IGUANA_UNIMPLEMENTED
 
 /*TODO
 func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
@@ -96,32 +100,36 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
             case command::decode_ans32: {
                 const std::uint64_t len_uncompressed = read_control_var_uint(src, ctrl_cursor);
                 const std::uint64_t len_compressed = read_control_var_uint(src, ctrl_cursor);
-                const std::uint8_t * const ans = src + data_cursor;
 
-/*TODO
-
-                ans := src[dataCursor : dataCursor+lenCompressed]
-                encoded, ec := ansDecodeTable(&d.anstab, ans)
-                if ec != ecOK {
-                    return dst, ec
+                // Recover the ANS decoding table from the input stream                
+                ans::statistics::decoding_table ans_tab;
+                {   input_stream is{src + data_cursor, std::size_t(len_compressed)};
+                    data_cursor += len_compressed;
+                    ans::statistics{is}.build_decoding_table(ans_tab);
                 }
-                dst, ec = ans32DecodeExplicit(encoded, &d.anstab, int(lenUncompressed), dst)
+
+                
+IGUANA_UNIMPLEMENTED
+/*TODO
+                 dst, ec = ans32DecodeExplicit(encoded, &d.anstab, int(lenUncompressed), dst)
                 if ec != ecOK {
                     return dst, ec
                 }*/
-                data_cursor += len_compressed;
             } break;
 
 		case command::decode_ans1: {
                 const std::uint64_t len_uncompressed = read_control_var_uint(src, ctrl_cursor);
                 const std::uint64_t len_compressed = read_control_var_uint(src, ctrl_cursor);
-                const std::uint8_t * const ans = src + data_cursor;
+
+                // Recover the ANS decoding table from the input stream                
+                ans::statistics::decoding_table ans_tab;
+                {   input_stream is{src + data_cursor, std::size_t(len_compressed)};
+                    data_cursor += len_compressed;
+                    ans::statistics{is}.build_decoding_table(ans_tab);
+                }
+
+IGUANA_UNIMPLEMENTED
 /*TODO
-			ans := src[dataCursor : dataCursor+lenCompressed]
-			encoded, ec := ansDecodeTable(&d.anstab, ans)
-			if ec != ecOK {
-				return dst, ec
-			}
 			dst, ec = ans1DecodeExplicit(encoded, &d.anstab, int(lenUncompressed), dst)
 			if ec != ecOK {
 				return dst, ec
@@ -129,9 +137,10 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 
     			data_cursor += len_compressed;
             } break;
-/*TODO
-		case cmdDecodeANSNibble:
-			var lenUncompressed, lenCompressed uint64
+
+		case command::decode_ans_nibble: {
+IGUANA_UNIMPLEMENTED
+/*			var lenUncompressed, lenCompressed uint64
 			lenUncompressed, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
 			if ec != ecOK {
 				return dst, ec
@@ -151,6 +160,8 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 			}
 			dataCursor += lenCompressed
 */
+        } break;
+
 		case command::decode_iguana: {
 			// Fetch the header byte
 			if (ctrl_cursor < 0) {
@@ -177,6 +188,7 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 						entropy_buffer_size += u_len;
 					}
 				}
+IGUANA_UNIMPLEMENTED
 /*TODO
 				if uint64(cap(d.entbuf)) < entropyBufferSize+padSize {
 					// ensure the output is appropriately padded:
@@ -188,12 +200,25 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 				for(std::size_t i = 0; i != substream::count; ++i) {
 					const auto u_len = u_lens[i];
 					if (const auto em = static_cast<entropy_mode>((hdr >> (i * 4)) & 0x0f); em == entropy_mode::none) {
+IGUANA_UNIMPLEMENTED
 		//TODO				ctx.pack[i].set = d.padStream(i, src[dataCursor:dataCursor+uLen])
 						data_cursor += u_len;
 					} else {
                         const std::uint64_t c_len = read_control_var_uint(src, ctrl_cursor);
 						switch(em) {
-						case entropy_mode::ans32: {/*TODO
+						case entropy_mode::ans32: {
+
+                        // Recover the ANS decoding table from the input stream                
+                        ans::statistics::decoding_table ans_tab;
+                        {   input_stream is{src + data_cursor, std::size_t(c_len)};
+                            data_cursor += c_len;
+                            ans::statistics{is}.build_decoding_table(ans_tab);
+                        }
+                        
+                                          
+      
+IGUANA_UNIMPLEMENTED
+/*TODO
 							ans := src[dataCursor : dataCursor+cLen]
 							dataCursor += cLen
 
@@ -210,7 +235,8 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 							entOffs += uLen*/
                         } break;
 
-						case entropy_mode::ans1: { /*TODO
+						case entropy_mode::ans1: {
+IGUANA_UNIMPLEMENTED /*TODO
 							ans := src[dataCursor : dataCursor+cLen]
 							dataCursor += cLen
 
@@ -227,7 +253,9 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 							entOffs += uLen*/
                         } break;
 
-						case entropy_mode::ans_nibble:/*TODO
+						case entropy_mode::ans_nibble: {
+IGUANA_UNIMPLEMENTED
+/*TODO
 							ansNib := src[dataCursor : dataCursor+cLen]
 							dataCursor += cLen
 
@@ -242,7 +270,9 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 								return dst, ec
 							}
 							entOffs += uLen
-*/
+*/          
+                        } break;
+
 						default:
 							throw corrupted_bitstream_exception("unrecognized entropy mode");
 						}
@@ -362,6 +392,7 @@ void iguana::decoder::decompress_portable(context& ctx) {
 }
 
 void iguana::decoder::wild_copy(output_stream& dst, std::size_t offs, std::size_t len) {
+IGUANA_UNIMPLEMENTED
 /*TODO
 // append dst[pos:pos+matchlen] to dst
 // taking care to obey overlapped copy semantics

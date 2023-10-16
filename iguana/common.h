@@ -68,3 +68,6 @@ namespace iguana {
         };
     }
 }
+
+#define IGUANA_UNIMPLEMENTED for(;;) { std::abort(); } // For porting purposes only, remove me when done!
+
