@@ -37,35 +37,39 @@ namespace iguana {
 iguana::decoder::~decoder() noexcept {}
 
 void iguana::decoder::decode(output_stream& dst, input_stream& src) {
-    std::size_t cursor = src.size();
+    ssize_t cursor = src.size();
     if (cursor == 0) {
         throw out_of_input_data_exception();
     }
 
     --cursor;
-	const auto uncompressed_len = read_control_var_uint(src, cursor);
+    const auto* const p_data = src.data();
+	const std::uint64_t uncompressed_len = read_control_var_uint(p_data, cursor);
 
 	if (uncompressed_len == 0) {
 		return;
 	}
 
     dst.reserve_more(uncompressed_len);
+    decompress(dst, p_data, uncompressed_len, cursor);
+}
+
+std::uint64_t iguana::decoder::read_control_var_uint(const std::uint8_t* src, ssize_t& cursor) {
+	std::uint64_t r = 0;
+	while(cursor >= 0) {
+		const std::uint8_t v = src[cursor--];
+		r = (r << 7) | std::uint64_t(v & 0x7f);
+		if ((v & 0x80) != 0) {
+            return r;
+		}
+	}
+
+    throw out_of_input_data_exception();
+}
+
+void iguana::decoder::decompress(output_stream& dst, const std::uint8_t* const src, std::uint64_t uncompressed_len, ssize_t& ctrl_cursor) {
 
 /*TODO
-	dst, ec = d.decode(uncompressedLen, cursor, dst, src)
-	if ec != ecOK {
-		return dst, errs[ec]
-	}
-*/
-}
-
-std::uint64_t iguana::decoder::read_control_var_uint(const std::uint8_t* src, std::size_t& cursor) {
-
-}
-
-void iguana::decoder::decode(output_stream& dst, const std::uint8_t* const src, std::uint64_t uncompressed_len, std::size_t ctrl_cursor) {
-
-/*
 func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 	d.reset()
 	var ec errorCode
@@ -370,4 +374,135 @@ void iguana::decoder::at_process_start() {
 
 void iguana::decoder::at_process_end() {
     printf("iguana::decoder::at_process_end()\n");
+}
+
+
+std::uint8_t iguana::decoder::substream::fetch8(error_code& ec) noexcept {
+    if (empty()) {
+        ec = error_code::out_of_input_data;
+        return 0;
+    }
+    ec = error_code::ok;
+	return *m_cursor++;
+}
+
+std::uint8_t iguana::decoder::substream::fetch8() {
+    if (empty()) {
+        throw out_of_input_data_exception();
+    }
+	return *m_cursor++;
+}
+
+std::uint16_t iguana::decoder::substream::fetch16(error_code& ec) noexcept {
+    if (remaining() < 2) {
+        ec = error_code::out_of_input_data;    
+        return 0;
+    }
+    ec = error_code::ok;
+    const std::uint8_t a = m_cursor[0];
+    const std::uint8_t b = m_cursor[1];
+    m_cursor += 2;    
+	return std::uint16_t(a) | (std::uint16_t(b) << 8);
+}
+
+std::uint16_t iguana::decoder::substream::fetch16() {
+    if (remaining() < 2) {
+        throw out_of_input_data_exception();
+    }
+    const std::uint8_t a = m_cursor[0];
+    const std::uint8_t b = m_cursor[1];
+    m_cursor += 2;    
+	return std::uint16_t(a) | (std::uint16_t(b) << 8);
+}
+
+std::uint32_t iguana::decoder::substream::fetch24(error_code& ec) noexcept {
+    if (remaining() < 3) {
+        ec = error_code::out_of_input_data;    
+        return 0;
+    }
+    ec = error_code::ok;
+    const std::uint8_t a = m_cursor[0];
+    const std::uint8_t b = m_cursor[1];
+    const std::uint8_t c = m_cursor[2];
+    m_cursor += 3;
+	return std::uint32_t(a) | (std::uint32_t(b) << 8) | (std::uint32_t(c) << 16);
+}
+
+std::uint32_t iguana::decoder::substream::fetch24() {
+    if (remaining() < 3) {
+        throw out_of_input_data_exception();
+    }
+    const std::uint8_t a = m_cursor[0];
+    const std::uint8_t b = m_cursor[1];
+    const std::uint8_t c = m_cursor[2];
+    m_cursor += 3;
+	return std::uint32_t(a) | (std::uint32_t(b) << 8) | (std::uint32_t(c) << 16);
+}
+
+std::uint32_t iguana::decoder::substream::fetch_var_uint(error_code& ec) noexcept {
+    const std::uint8_t a = fetch8(ec);
+
+    if (ec != error_code::ok) {
+        return 0;
+    }
+
+	if (a < 0xfe) {
+		return std::uint32_t(a);
+    } else if (a == 0xfe) {
+        const std::uint32_t b = fetch16(ec);
+        if (ec != error_code::ok) {
+            return 0;
+        }
+		const std::uint32_t x0 = b & 0xff;
+		const std::uint32_t x1 = (b >> 8);
+		return (x1 * 254) + x0;
+    } else {
+        const std::uint32_t b = fetch24(ec);
+        if (ec != error_code::ok) {
+            return 0;
+        }
+		const std::uint32_t x0 = b & 0xff;
+		const std::uint32_t x1 = (b >> 8) & 0xff;
+		const std::uint32_t x2 = b >> 16;
+		return (((x2 * 254) + x1) * 254) + x0;
+    }
+}
+
+std::uint32_t iguana::decoder::substream::fetch_var_uint() {
+    const std::uint8_t a = fetch8();
+
+	if (a < 0xfe) {
+		return std::uint32_t(a);
+    } else if (a == 0xfe) {
+        const std::uint32_t b = fetch16();
+		const std::uint32_t x0 = b & 0xff;
+		const std::uint32_t x1 = (b >> 8);
+		return (x1 * 254) + x0;
+    } else {
+        const std::uint32_t b = fetch24();
+		const std::uint32_t x0 = b & 0xff;
+		const std::uint32_t x1 = (b >> 8) & 0xff;
+		const std::uint32_t x2 = b >> 16;
+		return (((x2 * 254) + x1) * 254) + x0;
+    }
+}
+
+iguana::const_byte_span iguana::decoder::substream::fetch_sequence(std::size_t n, error_code& ec) noexcept {
+    if (remaining() < n) {
+        ec = error_code::out_of_input_data;    
+        return {};
+    }
+    ec = error_code::ok;
+    auto * const p = m_cursor;
+    m_cursor += n;
+    return { p, n };
+}
+
+iguana::const_byte_span iguana::decoder::substream::fetch_sequence(std::size_t n) {
+    if (remaining() < n) {
+        throw out_of_input_data_exception();
+    }
+    auto * const p = m_cursor;
+    m_cursor += n;
+    return { p, n };
 }

@@ -41,10 +41,13 @@ namespace iguana {
         decoder(decoder&&) = default;
         decoder& operator =(decoder&&) = default;
 
+    public:
+        void decode(output_stream& dst, input_stream& src);
+
     private:
+        void decompress(output_stream& dst, const std::uint8_t* const src, std::uint64_t uncompressed_len, ssize_t& ctrl_cursor);
         static void decompress_portable(context& ctx);
-//void iguana::decoder::decode(output_stream& dst, input_stream& src, std::uint64_t uncompressed_len, std::int64_t ctrl_cursor) {
-        static std::uint64_t read_control_var_uint(const std::uint8_t* src, std::size_t& cursor);
+        static std::uint64_t read_control_var_uint(const std::uint8_t* src, ssize_t& cursor);
         static void wild_copy(output_stream& dst, std::size_t offs, std::size_t len);
         static void at_process_start();
         static void at_process_end();
@@ -65,18 +68,42 @@ namespace iguana {
 	        count
         };
 
+    private:
+        const std::uint8_t* m_cursor = nullptr;
+        const std::uint8_t* m_end = nullptr;
+
     public:
-        substream() {}
+        substream() noexcept {}
+
+        substream(const std::uint8_t* p, const std::uint8_t* e) noexcept
+          : m_cursor(p)
+          , m_end(e) {}
+
+        substream(const std::uint8_t* p, std::size_t n) noexcept
+          : substream(p, p + n) {}
+
         ~substream() noexcept {}
 
     public:
-        bool empty() const noexcept;
-        std::size_t remaining() const noexcept;
-        std::uint8_t fetch8(error_code& ec) noexcept;
+
+        bool empty() const noexcept {
+            return m_cursor == m_end;
+        }
+
+        std::size_t remaining() const noexcept {
+            return std::size_t(m_end - m_cursor);
+        }
+
+        std::uint8_t fetch8(error_code& ec) noexcept; 
+        std::uint8_t fetch8(); 
         std::uint16_t fetch16(error_code& ec) noexcept;
+        std::uint16_t fetch16();
         std::uint32_t fetch24(error_code& ec) noexcept;
+        std::uint32_t fetch24();
         std::uint32_t fetch_var_uint(error_code& ec) noexcept;
+        std::uint32_t fetch_var_uint();
         const_byte_span fetch_sequence(std::size_t n, error_code& ec) noexcept;
+        const_byte_span fetch_sequence(std::size_t n);
     };
 
     //
