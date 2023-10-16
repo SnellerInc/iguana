@@ -84,6 +84,11 @@ namespace iguana {
 
         ~substream() noexcept {}
 
+        substream(const substream&) = default;
+        substream& operator =(const substream&) = default;
+        substream(substream&&) = default;
+        substream& operator =(substream&&) = default;
+
     public:
 
         bool empty() const noexcept {
@@ -92,6 +97,15 @@ namespace iguana {
 
         std::size_t remaining() const noexcept {
             return std::size_t(m_end - m_cursor);
+        }
+
+        void set(const std::uint8_t* p, const std::uint8_t* e) noexcept {
+            m_cursor = p;
+            m_end = e;
+        }
+
+        void set(const std::uint8_t* p, std::size_t n) noexcept {
+            set(p, p + n);
         }
 
         std::uint8_t fetch8(error_code& ec) noexcept; 

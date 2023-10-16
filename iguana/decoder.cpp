@@ -14,6 +14,7 @@
 
 #include "decoder.h"
 #include "command.h"
+#include "entropy.h"
 
 //
 
@@ -74,6 +75,9 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 	d.reset()
 	var ec errorCode
 */
+
+    context ctx{ .dst = dst, .last_offset = 0 };
+
 	// Fetch the header
 
 	for(std::uint64_t data_cursor = 0;;) {
@@ -125,7 +129,7 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 
     			data_cursor += len_compressed;
             } break;
-/*
+/*TODO
 		case cmdDecodeANSNibble:
 			var lenUncompressed, lenCompressed uint64
 			lenUncompressed, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
@@ -146,64 +150,50 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 				return dst, ec
 			}
 			dataCursor += lenCompressed
-
-		case cmdDecodeIguana:
+*/
+		case command::decode_iguana: {
 			// Fetch the header byte
-			if ctrlCursor < 0 {
-				return dst, ecOutOfInputData
+			if (ctrl_cursor < 0) {
+                throw out_of_input_data_exception();
 			}
 
-			var hdr uint64
-			hdr, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
-			if ec != ecOK {
-				return dst, ec
-			}
-
+            const std::uint64_t hdr = read_control_var_uint(src, ctrl_cursor);
+        
 			// Fetch the uncompressed streams' lengths
-			if hdr == 0 {
-				for i := stridType(0); i < streamCount; i++ {
-					var uLen uint64
-					uLen, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
-					if ec != ecOK {
-						return dst, ec
-					}
-					d.pack[i].data = src[dataCursor : dataCursor+uLen]
-					dataCursor += uLen
+			if (hdr == 0) {
+				for(std::size_t i = 0; i != substream::count; ++i) {
+                    const std::uint64_t u_len = read_control_var_uint(src, ctrl_cursor);
+                    ctx.streams[i].set(src + data_cursor, std::size_t(u_len));
+                    data_cursor += u_len;
 				}
 			} else {
-				var ulens [streamCount]uint64
-				entropyBufferSize := uint64(0)
+				std::uint64_t u_lens[substream::count];
+				std::uint64_t entropy_buffer_size = 0;
 
-				for i := stridType(0); i < streamCount; i++ {
-					var uLen uint64
-					uLen, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
-					if ec != ecOK {
-						return dst, ec
-					}
-					ulens[i] = uLen
-					if entropyMode := EntropyMode((hdr >> (i * 4)) & 0x0f); entropyMode != EntropyNone {
-						entropyBufferSize += uLen
+				for(std::size_t i = 0; i != substream::count; ++i) {
+                    const std::uint64_t u_len = read_control_var_uint(src, ctrl_cursor);
+					u_lens[i] = u_len;
+					if (const auto em = static_cast<entropy_mode>((hdr >> (i * 4)) & 0x0f); em != entropy_mode::none) {
+						entropy_buffer_size += u_len;
 					}
 				}
+/*TODO
 				if uint64(cap(d.entbuf)) < entropyBufferSize+padSize {
 					// ensure the output is appropriately padded:
 					d.entbuf = make([]byte, entropyBufferSize, entropyBufferSize+padSize)
 				}
-				entOffs := uint64(0)
+*/
+				std::uint64_t ent_offs = 0;
 
-				for i := stridType(0); i < streamCount; i++ {
-					uLen := ulens[i]
-					if entropyMode := EntropyMode((hdr >> (i * 4)) & 0x0f); entropyMode == EntropyNone {
-						d.pack[i].data = d.padStream(i, src[dataCursor:dataCursor+uLen])
-						dataCursor += uLen
+				for(std::size_t i = 0; i != substream::count; ++i) {
+					const auto u_len = u_lens[i];
+					if (const auto em = static_cast<entropy_mode>((hdr >> (i * 4)) & 0x0f); em == entropy_mode::none) {
+		//TODO				ctx.pack[i].set = d.padStream(i, src[dataCursor:dataCursor+uLen])
+						data_cursor += u_len;
 					} else {
-						var cLen uint64
-						cLen, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
-						if ec != ecOK {
-							return dst, ec
-						}
-						switch entropyMode {
-						case EntropyANS32:
+                        const std::uint64_t c_len = read_control_var_uint(src, ctrl_cursor);
+						switch(em) {
+						case entropy_mode::ans32: {/*TODO
 							ans := src[dataCursor : dataCursor+cLen]
 							dataCursor += cLen
 
@@ -217,9 +207,10 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 							if ec != ecOK {
 								return dst, ec
 							}
-							entOffs += uLen
+							entOffs += uLen*/
+                        } break;
 
-						case EntropyANS1:
+						case entropy_mode::ans1: { /*TODO
 							ans := src[dataCursor : dataCursor+cLen]
 							dataCursor += cLen
 
@@ -233,9 +224,10 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 							if ec != ecOK {
 								return dst, ec
 							}
-							entOffs += uLen
+							entOffs += uLen*/
+                        } break;
 
-						case EntropyANSNibble:
+						case entropy_mode::ans_nibble:/*TODO
 							ansNib := src[dataCursor : dataCursor+cLen]
 							dataCursor += cLen
 
@@ -250,21 +242,22 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 								return dst, ec
 							}
 							entOffs += uLen
-
+*/
 						default:
-							panic("unrecognized entropy mode")
+							throw corrupted_bitstream_exception("unrecognized entropy mode");
 						}
 					}
 				}
 			}
 
-			d.lastOffs = -initLastOffset
-			dst, ec = decompressIguana(dst, &d.pack, &d.lastOffs)
+			ctx.last_offset = init_last_offset;
+            g_Decompress(ctx);
 
-			if ec != ecOK {
-				return dst, ec
-			}
-*/
+            if (ctx.ec != error_code::ok) {
+                exception::from_error(ctx.ec);
+            }
+        } break;
+
 		default:
             throw unrecognized_command_exception();
 		}
@@ -366,6 +359,31 @@ void iguana::decoder::decompress_portable(context& ctx) {
 	// end of decoding
 	ctx.last_offset = last_offs;
     ctx.ec = error_code::ok;
+}
+
+void iguana::decoder::wild_copy(output_stream& dst, std::size_t offs, std::size_t len) {
+/*TODO
+// append dst[pos:pos+matchlen] to dst
+// taking care to obey overlapped copy semantics
+func iguanaWildCopy(dst []byte, pos, matchlen int) []byte {
+	if pos+matchlen <= len(dst) {
+		// non-overlapped match: just a regular copy
+		return append(dst, dst[pos:pos+matchlen]...)
+	}
+	// slow path: overlapped match;
+	// can't copy in units larger than offset distance
+	for matchlen > 0 {
+		dist := len(dst) - pos
+		if matchlen < dist {
+			dist = matchlen
+		}
+		dst = append(dst, dst[pos:pos+dist]...)
+		pos += dist
+		matchlen -= dist
+	}
+	return dst
+}
+*/
 }
 
 void iguana::decoder::at_process_start() {
