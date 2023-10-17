@@ -39,12 +39,12 @@ namespace iguana::ans {
         constexpr inline static std::uint32_t cumulative_frequency_bits = word_M_bits;
         constexpr inline static std::uint32_t cumulative_frequency_mask = (1 << cumulative_frequency_bits) - 1;
 
-    /*TODO    //
+        //
 
-        constexpr inline static std::size_t ctrl_block_size         = 96;
-        constexpr inline static std::size_t nibble_block_max_length = 384; // 256 3-nibble groups
+        constexpr inline static std::size_t ctrl_block_size         = 6;
+        constexpr inline static std::size_t nibble_block_max_length = 24; // 16 3-nibble groups
         constexpr inline static std::size_t dense_table_max_length  = ctrl_block_size + nibble_block_max_length;
-*/
+
         //
 
         constexpr inline static std::size_t initial_buffer_size = 1 << 20;

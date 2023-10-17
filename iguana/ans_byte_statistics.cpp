@@ -24,8 +24,8 @@ namespace iguana::ans {
         friend byte_statistics;
 
     private:
-        std::array<std::uint32_t, 256>  m_freqs;
-        std::array<std::uint32_t, 257>  m_cum_freqs;
+        std::array<std::uint64_t, 256>  m_freqs;
+        std::array<std::uint64_t, 257>  m_cum_freqs;
 
     public:
         builder() noexcept = default;
@@ -91,9 +91,7 @@ void iguana::ans::byte_statistics::builder::build(const std::uint8_t *p, std::si
 		return;
 	}
 
-    const auto non_zero_freq_idx = compute_histogram(p, n);
-
-	if (m_freqs[non_zero_freq_idx] == n) {
+	if (const auto non_zero_freq_idx = compute_histogram(p, n); m_freqs[non_zero_freq_idx] == n) {
 		// Edge case #2: repetition of a single character.
 		//
 		// The ANS normalized cumulative frequencies by definition must sum up to a power of 2 (=ansWordM)
@@ -121,40 +119,40 @@ void iguana::ans::byte_statistics::builder::build(const std::uint8_t *p, std::si
 
 void iguana::ans::byte_statistics::builder::normalize_freqs() noexcept {
     calc_cum_freqs();
-	const std::size_t target_total = word_M;
-	const std::size_t cur_total = m_cum_freqs[256]; // TODO: prefix sum
+	const std::uint64_t target_total = word_M;
+	const std::uint64_t cur_total = m_cum_freqs[256]; // TODO: prefix sum
 
 	// resample distribution based on cumulative freqs
 	for(std::size_t i = 1; i <= 256; ++i) {
-		m_cum_freqs[i] = std::size_t((uint64_t(target_total) * uint64_t(m_cum_freqs[i])) / uint64_t(cur_total));
+		m_cum_freqs[i] = (target_total * m_cum_freqs[i]) / cur_total;
 	}
 
 	// if we nuked any non-0 frequency symbol to 0, we need to steal
 	// the range to make the frequency nonzero from elsewhere.
 	//
 	// this is not at all optimal, i'm just doing the first thing that comes to mind.
-	for(std::size_t i = 0; i != 256; ++i) {
+	for(int i = 0; i != 256; ++i) {
 		if ((m_freqs[i] != 0) && (m_cum_freqs[i+1] == m_cum_freqs[i])) {
 			// symbol i was set to zero freq
 
 			// find best symbol to steal frequency from (try to steal from low-freq ones)
-			auto bestFreq = ~std::size_t(0);
-			auto bestSteal = -1;
-			for(std::size_t j = 0; j != 256; ++j) {
+			auto best_freq = ~std::uint64_t(0);
+			auto best_steal = -1;
+			for(int j = 0; j != 256; ++j) {
 				const auto freq = m_cum_freqs[j+1] - m_cum_freqs[j];
-				if ((freq > 1) && (freq < bestFreq)) {
-					bestFreq = freq;
-					bestSteal = j;
+				if ((freq > 1) && (freq < best_freq)) {
+					best_freq = freq;
+					best_steal = j;
 				}
 			}
 
 			// and steal from it!
-			if (bestSteal < i) {
-				for(auto j = bestSteal + 1; j <= i; ++j) {
+			if (best_steal < i) {
+				for(auto j = best_steal + 1; j <= i; ++j) {
 					--m_cum_freqs[j];
 				}
 			} else {
-				for(auto j = i + 1; j <= bestSteal; ++j) {
+				for(auto j = i + 1; j <= best_steal; ++j) {
 					++m_cum_freqs[j];
 				}
 			}
@@ -183,11 +181,11 @@ int iguana::ans::byte_statistics::builder::compute_histogram(const std::uint8_t 
         return -1;
     }
 
-	std::size_t partial[4][256];
+	std::uint64_t partial[4][256];
     memory::zero(partial);
     auto k = utils::align_down(n, 4);
 
-	for(std::size_t i = 0; i != k; i += 4) {
+	for(std::size_t i = 0; i < k; i += 4) {
 		++partial[0][p[i+0]];
 		++partial[1][p[i+1]];
 		++partial[2][p[i+2]];
