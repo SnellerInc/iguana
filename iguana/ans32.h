@@ -19,8 +19,8 @@
 
 namespace iguana::ans32 {
 
-    class IGUANA_API encoder final : public ans::encoder {
-        using super = ans::encoder;
+    class IGUANA_API encoder final : public ans::basic_encoder<encoder> {
+        using super = ans::basic_encoder<encoder>;
         friend internal::initializer<encoder>;
         struct context;
 
@@ -42,7 +42,7 @@ namespace iguana::ans32 {
         encoder& operator =(encoder&& v) = default;
 
     public:
-        virtual void encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) override final;
+        void encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
         using super::encode;
 
     private:

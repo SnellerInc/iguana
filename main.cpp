@@ -18,7 +18,6 @@
 
 // TODO: use a proper makefile
 #include "iguana/ans_statistics.cpp"
-#include "iguana/ans_encoder.cpp"
 #include "iguana/ans1.cpp"
 #include "iguana/ans32.cpp"
 #include "iguana/error.cpp"

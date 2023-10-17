@@ -20,30 +20,37 @@
 #include "output_stream.h"
 
 namespace iguana::ans {
-    class IGUANA_API encoder {
+    template <
+        typename T
+    > class basic_encoder {
     protected:
-        encoder() noexcept {}
+        basic_encoder() noexcept {}
+        ~basic_encoder() noexcept {}
 
     public:
-        virtual ~encoder() noexcept;
+        basic_encoder(const basic_encoder&) = delete;
+        basic_encoder& operator =(const basic_encoder&) = delete;
+
+        basic_encoder(basic_encoder&& v) = default;
+        basic_encoder& operator =(basic_encoder&& v) = default;
 
     public:
-        encoder(const encoder&) = delete;
-        encoder& operator =(const encoder&) = delete;
-
-        encoder(encoder&& v) = default;
-        encoder& operator =(encoder&& v) = default;
-
-    public:
-        virtual void encode(output_stream& dst, const statistics& stats, const std::uint8_t *src, std::size_t src_len) = 0;
         void encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len);
 
         void encode(output_stream& dst, const ans::statistics& stats, const const_byte_span& src) {
-            encode(dst, stats, src.data(), src.size());
+            T::encode(dst, stats, src.data(), src.size());
         }
 
         void encode(output_stream& dst, const const_byte_span& src) {
             encode(dst, src.data(), src.size());
         }
     };
+
+    //
+
+    template <
+        typename T
+    > void basic_encoder<T>::encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len) {
+        T::encode(dst, statistics(src, src_len), src, src_len);
+    }
 }
