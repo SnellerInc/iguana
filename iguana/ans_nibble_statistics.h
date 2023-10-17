@@ -49,7 +49,7 @@ namespace iguana::ans {
         constexpr inline static std::size_t initial_buffer_size = 1 << 20;
 
     public:
-        using decoding_table = std::uint32_t[16];
+        using decoding_table = std::uint32_t[word_M];
 
     private:
         std::array<std::uint32_t, 16> m_table;

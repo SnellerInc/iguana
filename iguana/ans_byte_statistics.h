@@ -49,7 +49,7 @@ namespace iguana::ans {
         constexpr inline static std::uint32_t cumulative_frequency_mask = (1 << cumulative_frequency_bits) - 1;
 
     public:
-        using decoding_table = std::uint32_t[256];
+        using decoding_table = std::uint32_t[word_M];
 
     public:
         std::array<std::uint32_t, 256> m_table;

@@ -286,10 +286,10 @@ void iguana::ans::byte_statistics::deserialize(input_stream& s) {
 
 void iguana::ans::byte_statistics::build_decoding_table(decoding_table& tab) const noexcept {
 	// The normalized frequencies have been recovered. Fill the decoding table accordingly.
-    std::size_t start = 0;
-    for(std::uint32_t sym = 0; sym != 256; ++sym) {
+    std::uint64_t start = 0;
+    for(std::uint64_t sym = 0; sym != 256; ++sym) {
         const auto freq = m_table[sym];
-        for(std::uint32_t i = 0; i < freq; ++i) {
+        for(std::uint64_t i = 0; i < freq; ++i) {
             const auto slot = start + i;
             tab[slot] = (sym << 24) | (i << word_M_bits) | freq;
         }
