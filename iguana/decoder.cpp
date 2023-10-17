@@ -108,8 +108,7 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
                     ans::statistics{is}.build_decoding_table(ans_tab);
 
                     // Decode the compressed content
-                    ans32::decoder dec;
-                    dec.decode(dst, static_cast<std::size_t>(len_uncompressed), is, ans_tab);
+                    ans32::decoder{}.decode(dst, static_cast<std::size_t>(len_uncompressed), is, ans_tab);
                 }
       
             } break;
