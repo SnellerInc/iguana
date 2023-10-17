@@ -13,15 +13,15 @@
 //  limitations under the License.
 
 #include <vector>
-#include "ans_statistics.h"
+#include "ans_byte_statistics.h"
 #include "utils.h"
 
 //
 
 namespace iguana::ans {
 
-    class statistics::builder final {
-        friend statistics;
+    class byte_statistics::builder final {
+        friend byte_statistics;
 
     private:
         std::array<std::uint32_t, 256>  m_freqs;
@@ -48,7 +48,7 @@ namespace iguana::ans {
 
     //
 
-    class statistics::bitstream final {
+    class byte_statistics::bitstream final {
   	    std::uint64_t               m_acc = 0;
 	    int                         m_cnt = 0;
         std::vector<std::uint8_t>   m_buf;
@@ -77,7 +77,7 @@ namespace iguana::ans {
     };
 }
 
-void iguana::ans::statistics::builder::build(const std::uint8_t *p, std::size_t n) noexcept {
+void iguana::ans::byte_statistics::builder::build(const std::uint8_t *p, std::size_t n) noexcept {
     memory::zero(m_freqs);
     memory::zero(m_cum_freqs);
 
@@ -119,7 +119,7 @@ void iguana::ans::statistics::builder::build(const std::uint8_t *p, std::size_t 
 	normalize_freqs();
 }
 
-void iguana::ans::statistics::builder::normalize_freqs() noexcept {
+void iguana::ans::byte_statistics::builder::normalize_freqs() noexcept {
     calc_cum_freqs();
 	const std::size_t target_total = word_M;
 	const std::size_t cur_total = m_cum_freqs[256]; // TODO: prefix sum
@@ -168,14 +168,14 @@ void iguana::ans::statistics::builder::normalize_freqs() noexcept {
 	}
 }
 
-void iguana::ans::statistics::builder::calc_cum_freqs() noexcept {
+void iguana::ans::byte_statistics::builder::calc_cum_freqs() noexcept {
 	// TODO: another prefix sum
 	for(auto i = 0; i != m_freqs.size(); ++i) {
 		m_cum_freqs[i+1] = m_cum_freqs[i] + m_freqs[i];
 	}
 }
 
-int iguana::ans::statistics::builder::compute_histogram(const std::uint8_t *p, std::size_t n) noexcept {
+int iguana::ans::byte_statistics::builder::compute_histogram(const std::uint8_t *p, std::size_t n) noexcept {
 	// 4-way histogram calculation to compensate for the store-to-load forwarding issues observed here:
 	// https://fastcompression.blogspot.com/2014/09/counting-bytes-fast-little-trick-from.html
 
@@ -214,7 +214,7 @@ int iguana::ans::statistics::builder::compute_histogram(const std::uint8_t *p, s
     return -1; // Unreachable, as the n == 0 case was handled at the beginning
 }
 
-void iguana::ans::statistics::compute(const std::uint8_t *p, std::size_t n) noexcept {
+void iguana::ans::byte_statistics::compute(const std::uint8_t *p, std::size_t n) noexcept {
     builder bld;
     bld.build(p, n);
 
@@ -223,7 +223,7 @@ void iguana::ans::statistics::compute(const std::uint8_t *p, std::size_t n) noex
 	}
 }
 
-void iguana::ans::statistics::serialize(output_stream& s) const {
+void iguana::ans::byte_statistics::serialize(output_stream& s) const {
     bitstream ctrl;
     bitstream data;
 
@@ -263,7 +263,7 @@ void iguana::ans::statistics::serialize(output_stream& s) const {
     s.append(ctrl.data(), ctrl.size());
 }
 
-void iguana::ans::statistics::deserialize(input_stream& s) {
+void iguana::ans::byte_statistics::deserialize(input_stream& s) {
 	// The code part is encoded as 256 3-bit values, making it 96 bytes in total.
 	// Decoding it in groups of 24 bits is convenient: 8 words at a time.
 
@@ -314,7 +314,7 @@ void iguana::ans::statistics::deserialize(input_stream& s) {
     s.set_end(s.data() + ((nibidx + 1) >> 1));
 }
 
-void iguana::ans::statistics::build_decoding_table(decoding_table& tab) const noexcept {
+void iguana::ans::byte_statistics::build_decoding_table(decoding_table& tab) const noexcept {
 	// The normalized frequencies have been recovered. Fill the decoding table accordingly.
     std::size_t start = 0;
     for(std::uint32_t sym = 0; sym != 256; ++sym) {
@@ -327,7 +327,7 @@ void iguana::ans::statistics::build_decoding_table(decoding_table& tab) const no
     }
 }
 
-std::uint32_t iguana::ans::statistics::fetch_nibble(input_stream& s, ssize_t& idx) {
+std::uint32_t iguana::ans::byte_statistics::fetch_nibble(input_stream& s, ssize_t& idx) {
 	if (idx < 0) {
 		throw out_of_input_data_exception();
 	}
@@ -342,7 +342,7 @@ std::uint32_t iguana::ans::statistics::fetch_nibble(input_stream& s, ssize_t& id
 	}
 }
 
-void iguana::ans::statistics::bitstream::append(std::uint32_t v, std::uint32_t k) {
+void iguana::ans::byte_statistics::bitstream::append(std::uint32_t v, std::uint32_t k) {
 	const std::uint32_t m = ~(~std::uint32_t(0) << k);
 	m_acc |= std::uint64_t(v & m) << m_cnt;
 	m_cnt += int(k);
@@ -354,7 +354,7 @@ void iguana::ans::statistics::bitstream::append(std::uint32_t v, std::uint32_t k
 	}
 }
 
-void iguana::ans::statistics::bitstream::flush() {
+void iguana::ans::byte_statistics::bitstream::flush() {
 	while(m_cnt > 0) {
 		m_buf.push_back(std::uint8_t(m_acc));
 		m_acc >>= 8;

@@ -15,14 +15,17 @@
 #pragma once
 #include "common.h"
 #include "span.h"
-#include "ans_statistics.h"
 #include "input_stream.h"
 #include "output_stream.h"
 
 namespace iguana::ans {
     template <
-        typename T
+        typename T_CONCRETE,
+        typename T_STATISTICS
     > class basic_encoder {
+    public:
+        using statistics = T_STATISTICS;
+
     protected:
         basic_encoder() noexcept {}
         ~basic_encoder() noexcept {}
@@ -37,7 +40,7 @@ namespace iguana::ans {
     public:
         void encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len);
 
-        void encode(output_stream& dst, const ans::statistics& stats, const const_byte_span& src) {
+        void encode(output_stream& dst, const statistics& stats, const const_byte_span& src) {
             T::encode(dst, stats, src.data(), src.size());
         }
 
@@ -49,8 +52,12 @@ namespace iguana::ans {
     //
 
     template <
-        typename T
-    > void basic_encoder<T>::encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len) {
+        typename T_CONCRETE,
+        typename T_STATISTICS
+    > void basic_encoder <
+        T_CONCRETE,
+        T_STATISTICS
+    >::encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len) {
         T::encode(dst, statistics(src, src_len), src, src_len);
     }
 }

@@ -17,14 +17,15 @@
 #include "error.h"
 #include "ans_encoder.h"
 #include "ans_decoder.h"
+#include "ans_byte_statistics.h"
 
 namespace iguana::ans1 {
 
-    class IGUANA_API encoder final : public ans::basic_encoder<encoder> {
-        using super = ans::basic_encoder<encoder>;
+    class IGUANA_API encoder final : public ans::basic_encoder<encoder, ans::byte_statistics> {
+        using super = ans::basic_encoder<encoder, ans::byte_statistics>;
         friend internal::initializer<encoder>;
         struct context;
-
+        
     private:
         static void (*g_Compress)(context& ctx);
         static const internal::initializer<encoder> g_Initializer;
@@ -40,7 +41,7 @@ namespace iguana::ans1 {
         encoder& operator =(encoder&& v) = default;
 
     public:
-        void encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len);
+        void encode(output_stream& dst, const statistics& stats, const std::uint8_t *src, std::size_t src_len);
         using super::encode;
 
     private:
@@ -52,17 +53,17 @@ namespace iguana::ans1 {
     //
 
     struct encoder::context final {
-        output_stream&          dst;
-        const ans::statistics&  stats;
-        const std::uint8_t      *src;
-        std::size_t             src_len;
-        error_code              ec;
+        output_stream&      dst;
+        const statistics&   stats;
+        const std::uint8_t  *src;
+        std::size_t         src_len;
+        error_code          ec;
     };
 
     //
 
-    class IGUANA_API decoder final : public ans::basic_decoder<decoder> {
-        using super = ans::basic_decoder<decoder>;
+    class IGUANA_API decoder final : public ans::basic_decoder<decoder, ans::byte_statistics> {
+        using super = ans::basic_decoder<decoder, ans::byte_statistics>;
         friend internal::initializer<decoder>;
         struct context;
 
@@ -81,7 +82,7 @@ namespace iguana::ans1 {
         decoder& operator =(decoder&& v) = default;
 
     public:
-        void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
+        void decode(output_stream& dst, std::size_t result_size, input_stream& src, const statistics::decoding_table& tab);
         using super::decode;
 
     private:
@@ -93,10 +94,10 @@ namespace iguana::ans1 {
     //
 
     struct decoder::context final {
-        output_stream&                          dst;
-        std::size_t                             result_size;
-        input_stream&                           src;
-        const ans::statistics::decoding_table&  tab;
-        error_code                              ec;
+        output_stream&                      dst;
+        std::size_t                         result_size;
+        input_stream&                       src;
+        const statistics::decoding_table&   tab;
+        error_code                          ec;
     };
 }

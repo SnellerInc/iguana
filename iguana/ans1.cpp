@@ -32,7 +32,7 @@ iguana::ans1::encoder::~encoder() noexcept {}
 // For theoretical background, please refer to Jaroslaw Duda's seminal paper on rANS:
 // https://arxiv.org/pdf/1311.2540.pdf
 
-void iguana::ans1::encoder::encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
+void iguana::ans1::encoder::encode(output_stream& dst, const statistics& stats, const std::uint8_t *src, std::size_t src_len) {
     context ctx { .dst = dst, .stats = stats, .src = src, .src_len = src_len };
     g_Compress(ctx);
 
@@ -48,8 +48,8 @@ void iguana::ans1::encoder::compress_portable(context& ctx) {
 	for(auto *p = ctx.src + ctx.src_len; p > ctx.src;) {
         const std::uint8_t v = *--p;
         const auto q = ctx.stats[v];
-        const auto freq = q & ans::statistics::frequency_mask;
-        const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
+        const auto freq = q & statistics::frequency_mask;
+        const auto start = (q >> statistics::frequency_bits) & statistics::cumulative_frequency_mask;
         // renormalize
         auto x = state;
         if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
@@ -74,7 +74,7 @@ void iguana::ans1::encoder::at_process_end() {
 
 iguana::ans1::decoder::~decoder() noexcept {}
 
-void iguana::ans1::decoder::decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) {
+void iguana::ans1::decoder::decode(output_stream& dst, std::size_t result_size, input_stream& src, const statistics::decoding_table& tab) {
     dst.reserve_more(result_size);
     context ctx{ .dst = dst, .result_size = result_size, .src = src, .tab = tab };
     g_Decompress(ctx);

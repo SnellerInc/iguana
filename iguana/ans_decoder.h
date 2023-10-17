@@ -15,15 +15,18 @@
 #pragma once
 #include "common.h"
 #include "span.h"
-#include "ans_statistics.h"
 #include "input_stream.h"
 #include "output_stream.h"
 
 namespace iguana::ans {
 
     template <
-        typename T
+        typename T_CONCRETE,
+        typename T_STATISTICS
     > class basic_decoder {
+    public:
+        using statistics = T_STATISTICS;
+
     protected:
         basic_decoder() {}
         ~basic_decoder() noexcept {}
@@ -42,9 +45,13 @@ namespace iguana::ans {
     //
 
     template <
-        typename T
-    > void basic_decoder<T>::decode(output_stream& dst, std::size_t result_size, input_stream& src) {
-        const statistics stats(src);
+        typename T_CONCRETE,
+        typename T_STATISTICS
+    > void basic_decoder <
+        T_CONCRETE,
+        T_STATISTICS
+    >::decode(output_stream& dst, std::size_t result_size, input_stream& src) {
+        const typename T::statistics stats(src);
         statistics::decoding_table tab;
         stats.build_decoding_table(tab);
         T::decode(dst, result_size, src, tab);

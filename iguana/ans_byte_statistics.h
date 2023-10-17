@@ -39,7 +39,7 @@ namespace iguana::ans {
 
     //
 
-    class IGUANA_API statistics {
+    class IGUANA_API byte_statistics {
         class builder;
         class bitstream;
 
@@ -56,27 +56,27 @@ namespace iguana::ans {
         std::array<std::uint32_t, 256> m_table;
 
     public:
-        statistics() noexcept {
+        byte_statistics() noexcept {
             memory::zero(m_table);
         }
 
-        explicit statistics(const_byte_span s) noexcept
-          : statistics(s.data(), s.size()) {}
+        explicit byte_statistics(const_byte_span s) noexcept
+          : byte_statistics(s.data(), s.size()) {}
 
-        statistics(const std::uint8_t *p, std::size_t n) noexcept
-          : statistics() {
+        byte_statistics(const std::uint8_t *p, std::size_t n) noexcept
+          : byte_statistics() {
             compute(p, n);
         }
 
-        explicit statistics(input_stream& s) {
+        explicit byte_statistics(input_stream& s) {
             deserialize(s);
         }
 
-        ~statistics() = default;
-        statistics(const statistics&) = default;
-        statistics& operator =(const statistics&) = default;
-        statistics(statistics&&) = default;
-        statistics& operator =(statistics&&) = default;
+        ~byte_statistics() = default;
+        byte_statistics(const byte_statistics&) = default;
+        byte_statistics& operator =(const byte_statistics&) = default;
+        byte_statistics(byte_statistics&&) = default;
+        byte_statistics& operator =(byte_statistics&&) = default;
 
     public:
         std::uint32_t operator [](std::size_t k) const noexcept {

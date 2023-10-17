@@ -101,11 +101,11 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
                 const std::uint64_t len_uncompressed = read_control_var_uint(src, ctrl_cursor);
                 const std::uint64_t len_compressed = read_control_var_uint(src, ctrl_cursor);
 
-                {   ans::statistics::decoding_table ans_tab;
+                {   typename ans32::decoder::statistics::decoding_table ans_tab;
                     input_stream is{src + data_cursor, std::size_t(len_compressed)};
                     data_cursor += len_compressed;
                     // Recover the ANS decoding table from the input stream                
-                    ans::statistics{is}.build_decoding_table(ans_tab);
+                    ans32::decoder::statistics{is}.build_decoding_table(ans_tab);
 
                     // Decode the compressed content
                     ans32::decoder{}.decode(dst, static_cast<std::size_t>(len_uncompressed), is, ans_tab);
@@ -116,11 +116,11 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
                 const std::uint64_t len_uncompressed = read_control_var_uint(src, ctrl_cursor);
                 const std::uint64_t len_compressed = read_control_var_uint(src, ctrl_cursor);
 
-                 {  ans::statistics::decoding_table ans_tab;
+                 {  ans1::decoder::statistics::decoding_table ans_tab;
                     input_stream is{src + data_cursor, std::size_t(len_compressed)};
                     data_cursor += len_compressed;
                     // Recover the ANS decoding table from the input stream                
-                    ans::statistics{is}.build_decoding_table(ans_tab);
+                    ans1::decoder::statistics{is}.build_decoding_table(ans_tab);
 
                     // Decode the compressed content
                     ans1::decoder{}.decode(dst, static_cast<std::size_t>(len_uncompressed), is, ans_tab);
@@ -128,6 +128,10 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
             } break;
 
 		case command::decode_ans_nibble: {
+
+
+
+
 IGUANA_UNIMPLEMENTED
 /*			var lenUncompressed, lenCompressed uint64
 			lenUncompressed, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
@@ -198,10 +202,10 @@ IGUANA_UNIMPLEMENTED
 						case entropy_mode::ans32: {
 
                         // Recover the ANS decoding table from the input stream                
-                        ans::statistics::decoding_table ans_tab;
+                        ans32::decoder::statistics::decoding_table ans_tab;
                         {   input_stream is{src + data_cursor, std::size_t(c_len)};
                             data_cursor += c_len;
-                            ans::statistics{is}.build_decoding_table(ans_tab);
+                            ans32::decoder::statistics{is}.build_decoding_table(ans_tab);
                         }
                         
                                           

@@ -46,8 +46,8 @@ void iguana::ans32::encoder::put(context& ctx, const std::uint8_t* p, std::size_
 	for(int lane = 15; lane >= 0; --lane) {
 		if (lane < n) {
 			const auto q = ctx.stats[p[lane]];
-			const auto freq = q & ans::statistics::frequency_mask;
-			const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
+			const auto freq = q & statistics::frequency_mask;
+			const auto start = (q >> statistics::frequency_bits) & statistics::cumulative_frequency_mask;
 			// renormalize
 			auto x = ctx.state[lane];
 			if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
@@ -62,8 +62,8 @@ void iguana::ans32::encoder::put(context& ctx, const std::uint8_t* p, std::size_
 	for(int lane = 31; lane >= 16; --lane) {
 		if (lane < n) {
 			const auto q = ctx.stats[p[lane]];
-			const auto freq = q & ans::statistics::frequency_mask;
-			const auto start = (q >> ans::statistics::frequency_bits) & ans::statistics::cumulative_frequency_mask;
+			const auto freq = q & statistics::frequency_mask;
+			const auto start = (q >> statistics::frequency_bits) & statistics::cumulative_frequency_mask;
 			// renormalize
 			auto x = ctx.state[lane];
 			if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
@@ -76,7 +76,7 @@ void iguana::ans32::encoder::put(context& ctx, const std::uint8_t* p, std::size_
 	}
 }
 
-void iguana::ans32::encoder::encode(output_stream& dst, const ans::statistics& stats, const std::uint8_t *src, std::size_t src_len) {
+void iguana::ans32::encoder::encode(output_stream& dst, const statistics& stats, const std::uint8_t *src, std::size_t src_len) {
     m_rev.clear();
     context ctx { .fwd = dst, .rev = m_rev, .stats = stats, .src = src, .src_len = src_len };
     memory::fill(ctx.state, ans::word_L);
@@ -127,7 +127,7 @@ void iguana::ans32::encoder::at_process_end() {
 
 iguana::ans32::decoder::~decoder() noexcept {}
 
-void iguana::ans32::decoder::decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) {
+void iguana::ans32::decoder::decode(output_stream& dst, std::size_t result_size, input_stream& src, const statistics::decoding_table& tab) {
     dst.reserve_more(result_size);
     context ctx{ .dst = dst, .result_size = result_size, .src = src, .tab = tab };
     g_Decompress(ctx);
