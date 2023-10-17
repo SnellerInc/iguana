@@ -20,22 +20,33 @@
 #include "output_stream.h"
 
 namespace iguana::ans {
-    class IGUANA_API decoder {
+
+    template <
+        typename T
+    > class basic_decoder {
     protected:
-        decoder() {}
+        basic_decoder() {}
+        ~basic_decoder() noexcept {}
 
     public:
-        virtual ~decoder() noexcept;
+        basic_decoder(const basic_decoder&) = delete;
+        basic_decoder& operator =(const basic_decoder&) = delete;
+
+        basic_decoder(basic_decoder&& v) = default;
+        basic_decoder& operator =(basic_decoder&& v) = default;
 
     public:
-        decoder(const decoder&) = delete;
-        decoder& operator =(const decoder&) = delete;
-
-        decoder(decoder&& v) = default;
-        decoder& operator =(decoder&& v) = default;
-
-    public:
-        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) = 0;
         void decode(output_stream& dst, std::size_t result_size, input_stream& src);
     };
+
+    //
+
+    template <
+        typename T
+    > void basic_decoder<T>::decode(output_stream& dst, std::size_t result_size, input_stream& src) {
+        const statistics stats(src);
+        statistics::decoding_table tab;
+        stats.build_decoding_table(tab);
+        T::decode(dst, result_size, src, tab);
+    }
 }

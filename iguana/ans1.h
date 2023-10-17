@@ -61,8 +61,8 @@ namespace iguana::ans1 {
 
     //
 
-    class IGUANA_API decoder final : public ans::decoder {
-        using super = ans::decoder;
+    class IGUANA_API decoder final : public ans::basic_decoder<decoder> {
+        using super = ans::basic_decoder<decoder>;
         friend internal::initializer<decoder>;
         struct context;
 
@@ -72,7 +72,7 @@ namespace iguana::ans1 {
 
     public:
         decoder() {}
-        virtual ~decoder() noexcept;
+        ~decoder() noexcept;
 
         decoder(const decoder&) = delete;
         decoder& operator =(const decoder&) = delete;
@@ -81,7 +81,7 @@ namespace iguana::ans1 {
         decoder& operator =(decoder&& v) = default;
 
     public:
-        virtual void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab) override final;
+        void decode(output_stream& dst, std::size_t result_size, input_stream& src, const ans::statistics::decoding_table& tab);
         using super::decode;
 
     private:
