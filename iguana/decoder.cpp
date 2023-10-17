@@ -101,20 +101,17 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
                 const std::uint64_t len_uncompressed = read_control_var_uint(src, ctrl_cursor);
                 const std::uint64_t len_compressed = read_control_var_uint(src, ctrl_cursor);
 
-                // Recover the ANS decoding table from the input stream                
-                ans::statistics::decoding_table ans_tab;
-                {   input_stream is{src + data_cursor, std::size_t(len_compressed)};
+                {   ans::statistics::decoding_table ans_tab;
+                    input_stream is{src + data_cursor, std::size_t(len_compressed)};
                     data_cursor += len_compressed;
+                    // Recover the ANS decoding table from the input stream                
                     ans::statistics{is}.build_decoding_table(ans_tab);
-                }
 
-                
-IGUANA_UNIMPLEMENTED
-/*TODO
-                 dst, ec = ans32DecodeExplicit(encoded, &d.anstab, int(lenUncompressed), dst)
-                if ec != ecOK {
-                    return dst, ec
-                }*/
+                    // Decode the compressed content
+                    ans32::decoder dec;
+                    dec.decode(dst, static_cast<std::size_t>(len_uncompressed), is, ans_tab);
+                }
+      
             } break;
 
 		case command::decode_ans1: {
