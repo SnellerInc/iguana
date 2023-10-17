@@ -39,11 +39,11 @@ void iguana::ans1::encoder::encode(output_stream& dst, const statistics& stats, 
     if (ctx.ec != error_code::ok) {
         exception::from_error(ctx.ec);
     }
-    dst.reserve_more(ans::dense_table_max_length);
+    dst.reserve_more(statistics::dense_table_max_length);
 }
 
 void iguana::ans1::encoder::compress_portable(context& ctx) {
-    std::uint32_t state = ans::word_L;
+    std::uint32_t state = statistics::word_L;
     
 	for(auto *p = ctx.src + ctx.src_len; p > ctx.src;) {
         const std::uint8_t v = *--p;
@@ -52,12 +52,12 @@ void iguana::ans1::encoder::compress_portable(context& ctx) {
         const auto start = (q >> statistics::frequency_bits) & statistics::cumulative_frequency_mask;
         // renormalize
         auto x = state;
-        if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
+        if (x >= ((statistics::word_L >> statistics::word_M_bits) << statistics::word_L_bits) * freq) {
             ctx.dst.append_little_endian(static_cast<std::uint16_t>(x));
-            x >>= ans::word_L_bits;
+            x >>= statistics::word_L_bits;
         }
         // x = C(s,x)
-        state = ((x / freq) << ans::word_M_bits) + (x % freq) + start;
+        state = ((x / freq) << statistics::word_M_bits) + (x % freq) + start;
 	}
 
     ctx.dst.append_little_endian(state);
@@ -99,12 +99,12 @@ void iguana::ans1::decoder::decompress_portable(context& ctx) {
 
 	for(;;) {
 		{   const std::uint32_t x = state;
-            const auto slot = x & (ans::word_M - 1);
+            const auto slot = x & (statistics::word_M - 1);
             const auto t = ctx.tab[slot];
-            const auto freq = t & (ans::word_M - 1);
-            const auto bias = (t >> ans::word_M_bits) & (ans::word_M - 1);
+            const auto freq = t & (statistics::word_M - 1);
+            const auto bias = (t >> statistics::word_M_bits) & (statistics::word_M - 1);
             // s, x = D(x)
-            state = freq * (x >> ans::word_M_bits) + bias;
+            state = freq * (x >> statistics::word_M_bits) + bias;
             const auto s = std::uint8_t(t >> 24);
             if (cursor_dst < ctx.result_size) {
                 ctx.dst.append(s);
@@ -115,14 +115,14 @@ void iguana::ans1::decoder::decompress_portable(context& ctx) {
         }
 
 		// Normalize state
-		if (const auto x = state; x < ans::word_L) {
+		if (const auto x = state; x < statistics::word_L) {
 			const auto v = memory::read_little_endian<std::uint16_t>(src + cursor_src - 2);
 			cursor_src -= 2;
-			state = (x << ans::word_L_bits) | std::uint32_t(v);
+			state = (x << statistics::word_L_bits) | std::uint32_t(v);
 		}
 	}
 
-    if (state != ans::word_L) {
+    if (state != statistics::word_L) {
         ctx.ec = error_code::corrupted_bitstream;
         return;
     }

@@ -22,35 +22,35 @@
 
 namespace iguana::ans {
 
-    constexpr inline static std::size_t   word_M_bits = 12;
-    constexpr inline static std::size_t   word_L_bits = 16;
-    constexpr inline static std::uint32_t word_L = std::uint32_t(1) << word_L_bits;
-    constexpr inline static std::uint32_t word_M = std::uint32_t(1) << word_M_bits;
-
-    //
-
-	constexpr inline static std::size_t ctrl_block_size         = 96;
-	constexpr inline static std::size_t nibble_block_max_length = 384; // 256 3-nibble groups
-	constexpr inline static std::size_t dense_table_max_length  = ctrl_block_size + nibble_block_max_length;
-
-    //
-
-    constexpr inline static std::size_t initial_buffer_size = 1 << 20;
-
-    //
-
     class IGUANA_API byte_statistics {
         class builder;
         class bitstream;
 
     public:
-        using decoding_table = std::uint32_t[256];
+        constexpr inline static std::size_t initial_buffer_size = 1 << 20;
 
-    public:
+        //
+
+        constexpr inline static std::size_t   word_M_bits = 12;
+        constexpr inline static std::size_t   word_L_bits = 16;
+        constexpr inline static std::uint32_t word_L = std::uint32_t(1) << word_L_bits;
+        constexpr inline static std::uint32_t word_M = std::uint32_t(1) << word_M_bits;
+
+        //
+
+        constexpr inline static std::size_t ctrl_block_size         = 96;
+        constexpr inline static std::size_t nibble_block_max_length = 384; // 256 3-nibble groups
+        constexpr inline static std::size_t dense_table_max_length  = ctrl_block_size + nibble_block_max_length;
+
+        //
+
         constexpr inline static std::uint32_t frequency_bits = word_M_bits;
         constexpr inline static std::uint32_t frequency_mask = (1 << frequency_bits) - 1;
         constexpr inline static std::uint32_t cumulative_frequency_bits = word_M_bits;
         constexpr inline static std::uint32_t cumulative_frequency_mask = (1 << cumulative_frequency_bits) - 1;
+
+    public:
+        using decoding_table = std::uint32_t[256];
 
     public:
         std::array<std::uint32_t, 256> m_table;

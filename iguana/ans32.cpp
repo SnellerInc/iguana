@@ -28,7 +28,7 @@ namespace iguana::ans32 {
 //
 
 iguana::ans32::encoder::encoder() {
-    m_rev.reserve(ans::initial_buffer_size);
+    m_rev.reserve(statistics::initial_buffer_size);
 }
 
 iguana::ans32::encoder::~encoder() noexcept {}
@@ -50,12 +50,12 @@ void iguana::ans32::encoder::put(context& ctx, const std::uint8_t* p, std::size_
 			const auto start = (q >> statistics::frequency_bits) & statistics::cumulative_frequency_mask;
 			// renormalize
 			auto x = ctx.state[lane];
-			if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
+			if (x >= ((statistics::word_L >> statistics::word_M_bits) << statistics::word_L_bits) * freq) {
 				ctx.fwd.append_big_endian(static_cast<std::uint16_t>(x));
-				x >>= ans::word_L_bits;
+				x >>= statistics::word_L_bits;
 			}
 			// x = C(s,x)
-			ctx.state[lane] = ((x / freq) << ans::word_M_bits) + (x % freq) + start;
+			ctx.state[lane] = ((x / freq) << statistics::word_M_bits) + (x % freq) + start;
 		}
 	}
 	// the reverse half
@@ -66,12 +66,12 @@ void iguana::ans32::encoder::put(context& ctx, const std::uint8_t* p, std::size_
 			const auto start = (q >> statistics::frequency_bits) & statistics::cumulative_frequency_mask;
 			// renormalize
 			auto x = ctx.state[lane];
-			if (x >= ((ans::word_L >> ans::word_M_bits) << ans::word_L_bits) * freq) {
+			if (x >= ((statistics::word_L >> statistics::word_M_bits) << statistics::word_L_bits) * freq) {
 				ctx.rev.append_little_endian(static_cast<std::uint16_t>(x));
-				x >>= ans::word_L_bits;
+				x >>= statistics::word_L_bits;
 			}
 			// x = C(s,x)
-			ctx.state[lane] = ((x / freq) << ans::word_M_bits) + (x % freq) + start;
+			ctx.state[lane] = ((x / freq) << statistics::word_M_bits) + (x % freq) + start;
 		}
 	}
 }
@@ -79,7 +79,7 @@ void iguana::ans32::encoder::put(context& ctx, const std::uint8_t* p, std::size_
 void iguana::ans32::encoder::encode(output_stream& dst, const statistics& stats, const std::uint8_t *src, std::size_t src_len) {
     m_rev.clear();
     context ctx { .fwd = dst, .rev = m_rev, .stats = stats, .src = src, .src_len = src_len };
-    memory::fill(ctx.state, ans::word_L);
+    memory::fill(ctx.state, statistics::word_L);
     g_Compress(ctx);
         
     if (ctx.ec != error_code::ok) {
@@ -87,7 +87,7 @@ void iguana::ans32::encoder::encode(output_stream& dst, const statistics& stats,
     }
 
 	const auto len_rev = m_rev.size();
-    dst.reserve_more(len_rev + ans::dense_table_max_length);
+    dst.reserve_more(len_rev + statistics::dense_table_max_length);
 	dst.append_reverse(m_rev.data(), m_rev.size());
 }
 
@@ -153,12 +153,12 @@ void iguana::ans32::decoder::decompress_portable(context& ctx) {
 	for(;;) {
 		for(std::size_t lane = 0; lane != 32; ++lane) {
 			std::uint32_t x = state[lane];
-			const auto slot = x & (ans::word_M - 1);
+			const auto slot = x & (statistics::word_M - 1);
 			const auto t = ctx.tab[slot];
-			const auto freq = std::uint32_t(t & (ans::word_M - 1));
-			const auto bias = std::uint32_t((t >> ans::word_M_bits) & (ans::word_M - 1));
+			const auto freq = std::uint32_t(t & (statistics::word_M - 1));
+			const auto bias = std::uint32_t((t >> statistics::word_M_bits) & (statistics::word_M - 1));
 			// s, x = D(x)
-			state[lane] = freq * (x >> ans::word_M_bits) + bias;
+			state[lane] = freq * (x >> statistics::word_M_bits) + bias;
 			const auto s = std::uint8_t(t >> 24);
 			if (cursor_dst < ctx.result_size) {
 				ctx.dst.append(s);
@@ -169,18 +169,18 @@ void iguana::ans32::decoder::decompress_portable(context& ctx) {
 		}
 		// Normalize the forward part
 		for(std::size_t lane = 0; lane != 16; ++lane) {
-			if (const auto x = state[lane]; x < ans::word_L) {
+			if (const auto x = state[lane]; x < statistics::word_L) {
 				const auto v = memory::read_little_endian<std::uint16_t>(src + cursor_fwd);
 				cursor_fwd += 2;
-				state[lane] = (x << ans::word_L_bits) | std::uint32_t(v);
+				state[lane] = (x << statistics::word_L_bits) | std::uint32_t(v);
 			}
 		}
 		// Normalize the reverse part
 		for(std::size_t lane = 16; lane != 32; ++lane) {
-			if (const auto x = state[lane]; x < ans::word_L) {
+			if (const auto x = state[lane]; x < statistics::word_L) {
 				const auto v = memory::read_little_endian<std::uint16_t>(src + cursor_rev - 2);
 				cursor_rev -= 2;
-				state[lane] = (x << ans::word_L_bits) | std::uint32_t(v);
+				state[lane] = (x << statistics::word_L_bits) | std::uint32_t(v);
 			}
 		}
 	}
@@ -188,7 +188,7 @@ void iguana::ans32::decoder::decompress_portable(context& ctx) {
 done:
 
     for(std::size_t i = 0; i != 32; ++i) {
-        if (state[i] != ans::word_L) {
+        if (state[i] != statistics::word_L) {
             ctx.ec = error_code::corrupted_bitstream;
             return;
         }
