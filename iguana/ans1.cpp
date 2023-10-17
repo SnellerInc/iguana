@@ -105,11 +105,9 @@ void iguana::ans1::decoder::decompress_portable(context& ctx) {
             const auto bias = (t >> statistics::word_M_bits) & (statistics::word_M - 1);
             // s, x = D(x)
             state = freq * (x >> statistics::word_M_bits) + bias;
-            const auto s = std::uint8_t(t >> 24);
-            if (cursor_dst < ctx.result_size) {
-                ctx.dst.append(s);
-                ++cursor_dst;
-            } else {
+            ctx.dst.append(static_cast<std::uint8_t>(t >> 24));
+        
+            if (++cursor_dst >= ctx.result_size) {
                 break;
             }
         }
