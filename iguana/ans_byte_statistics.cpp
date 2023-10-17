@@ -12,8 +12,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <vector>
+#include <array>
 #include "ans_byte_statistics.h"
+#include "ans_bitstream.h"
 #include "utils.h"
 
 //
@@ -44,36 +45,6 @@ namespace iguana::ans {
         void normalize_freqs() noexcept;
         void calc_cum_freqs() noexcept;
         int compute_histogram(const std::uint8_t *p, std::size_t n) noexcept;
-    };
-
-    //
-
-    class byte_statistics::bitstream final {
-  	    std::uint64_t               m_acc = 0;
-	    int                         m_cnt = 0;
-        std::vector<std::uint8_t>   m_buf;
-
-    public:
-        bitstream() = default;
-        ~bitstream() noexcept = default;
-
-        bitstream(const bitstream&) = delete;
-        bitstream& operator =(const bitstream&) = delete;
-
-        bitstream(bitstream&&) = default;
-        bitstream& operator =(bitstream&&) = default;
-
-    public:
-        void append(std::uint32_t v, std::uint32_t k);
-        void flush();
-
-        auto size() const noexcept {
-            return m_buf.size();
-        }
-
-        auto data() const noexcept {
-            return m_buf.data();
-        }
     };
 }
 
@@ -309,6 +280,7 @@ void iguana::ans::byte_statistics::deserialize(input_stream& s) {
 			}
 		}
 	}
+
     s.set_end(s.data() + ((nibidx + 1) >> 1));
 }
 
@@ -337,25 +309,5 @@ std::uint32_t iguana::ans::byte_statistics::fetch_nibble(input_stream& s, ssize_
 		return std::uint32_t(x & 0x0f);
 	} else {
 		return std::uint32_t(x >> 4);
-	}
-}
-
-void iguana::ans::byte_statistics::bitstream::append(std::uint32_t v, std::uint32_t k) {
-	const std::uint32_t m = ~(~std::uint32_t(0) << k);
-	m_acc |= std::uint64_t(v & m) << m_cnt;
-	m_cnt += int(k);
-
-	while(m_cnt >= 8) {
-		m_buf.push_back(std::uint8_t(m_acc));
-		m_acc >>= 8;
-		m_cnt -= 8;
-	}
-}
-
-void iguana::ans::byte_statistics::bitstream::flush() {
-	while(m_cnt > 0) {
-		m_buf.push_back(std::uint8_t(m_acc));
-		m_acc >>= 8;
-		m_cnt -= 8;
 	}
 }

@@ -24,7 +24,6 @@ namespace iguana::ans {
 
     class IGUANA_API byte_statistics {
         class builder;
-        class bitstream;
 
     public:
         constexpr inline static std::size_t initial_buffer_size = 1 << 20;

@@ -24,7 +24,6 @@ namespace iguana::ans {
 
     class IGUANA_API nibble_statistics {
         class builder;
-        class bitstream;
 
     public:
         constexpr inline static std::size_t   word_M_bits = 12;
@@ -96,8 +95,8 @@ namespace iguana::ans {
     public:
         void serialize(output_stream& s) const;
         void deserialize(input_stream& s);
-/*TODO
+
     private:
-        static std::uint32_t fetch_nibble(input_stream& s, ssize_t& nibidx);*/
+        static std::uint32_t fetch_nibble(input_stream& s, ssize_t& nibidx);
     };
 }

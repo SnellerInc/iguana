@@ -22,6 +22,7 @@
 #include "iguana/ans1.cpp"
 #include "iguana/ans32.cpp"
 #include "iguana/ans_nibble.cpp"
+#include "iguana/ans_bitstream.cpp"
 #include "iguana/error.cpp"
 #include "iguana/output_stream.cpp"
 #include "iguana/decoder.cpp"

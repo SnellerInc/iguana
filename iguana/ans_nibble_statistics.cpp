@@ -12,8 +12,10 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "ans_nibble_statistics.h"
 #include <array>
+#include "ans_nibble_statistics.h"
+#include "ans_bitstream.h"
+#include "utils.h"
 
 // For theoretical background, please refer to Jaroslaw Duda's seminal paper on rANS:
 // https://arxiv.org/pdf/1311.2540.pdf
@@ -195,4 +197,110 @@ int iguana::ans::nibble_statistics::builder::compute_histogram(const std::uint8_
 	}
 
     return -1; // Unreachable, as the n == 0 case was handled at the beginning
+}
+
+void iguana::ans::nibble_statistics::serialize(output_stream& s) const {
+    bitstream ctrl;
+    bitstream data;
+
+	// 000 => 0
+	// 001 => 1
+	// 010 => 2
+	// 011 => 3
+	// 100 => 4
+	// 101 => one nibble f - 5
+	// 110 => two nibbles f - 21
+	// 111 => three nibbles f - 277
+
+	for(std::size_t i = 0; i != 16; ++i) {
+		const auto f = m_table[i] & frequency_mask;
+		if (f < 5) {
+			ctrl.append(f, 3);
+		} else if (f < 21) {
+			ctrl.append(0b101, 3);
+			data.append(f-5, 4);
+		} else if (f < 277) {
+			ctrl.append(0b110, 3);
+			data.append(f-21, 8);
+		} else {
+			ctrl.append(0b111, 3);
+			data.append(f-277, 12);
+		}
+	}
+
+	ctrl.flush();
+	data.flush();
+
+	const auto n_ctrl = ctrl.size();
+	const auto n_data = data.size();
+    s.reserve_more(n_ctrl + n_data);
+    s.append_reverse(data.data(), data.size());
+    s.append(ctrl.data(), ctrl.size());
+}
+
+void iguana::ans::nibble_statistics::deserialize(input_stream& s) {
+	// The code part is encoded as 16 3-bit values, making it 6 bytes in total.
+	// Decoding it in groups of 24 bits is convenient: 8 words at a time.
+
+	const auto src_len = s.size();
+	if (src_len < ctrl_block_size) {
+        throw wrong_source_size_exception();
+	}
+
+    const std::uint8_t* const ctrl = s.data() + src_len - ctrl_block_size;
+	ssize_t nibidx = (src_len - ctrl_block_size - 1) * 2 + 1;
+	std::uint32_t k = 0;
+
+	for(std::size_t i = 0; i != ctrl_block_size; i += 3) {
+		std::uint32_t x = std::uint32_t(ctrl[i]) | std::uint32_t(ctrl[i+1])<<8 | std::uint32_t(ctrl[i+2]) << 16;
+		// Eight 3-bit control words fit within a single 24-bit chunk
+		for(std::size_t j = 0; j != 8; ++j, ++k) {
+			const auto v = x & 0x07;
+			x >>= 3;
+			switch(v) {
+			case 0b111: {
+				// Three nibbles f - 277
+                const auto x0 = fetch_nibble(s, nibidx);
+                const auto x1 = fetch_nibble(s, nibidx);
+                const auto x2 = fetch_nibble(s, nibidx);
+				m_table[k] = (x0 | (x1 << 4) | (x2 << 8)) + 277;
+            } break;
+
+			case 0b110: {
+				// Two nibbles f - 21
+                const auto x0 = fetch_nibble(s, nibidx);
+                const auto x1 = fetch_nibble(s, nibidx);
+				m_table[k] = (x0 | (x1 << 4)) + 21;
+            } break;
+
+			case 0b101: {
+                // One nibble f - 5
+                const auto x0 = fetch_nibble(s, nibidx);
+                m_table[k] = x0 + 5;
+            } break;
+
+			default:
+				// Explicit encoding of a short value
+				m_table[k] = v;
+                break;
+			}
+		}
+    }
+
+    s.set_end(s.data() + ((nibidx + 1) >> 1));
+}
+
+std::uint32_t iguana::ans::nibble_statistics::fetch_nibble(input_stream& s, ssize_t& idx) {
+	if (idx < 0) {
+		throw out_of_input_data_exception();
+	}
+
+    const std::uint8_t x = s[idx >> 1];
+    const auto prev_idx = idx--;
+
+	if ((prev_idx & 0x01) != 0) {
+		return std::uint32_t(x & 0x0f);
+	} else {
+		return std::uint32_t(x >> 4);
+	}
 }
