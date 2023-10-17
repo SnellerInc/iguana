@@ -18,13 +18,14 @@
 
 namespace iguana {
     namespace {
-        const std::array<const char*, 6> g_ErrorDescription = {
+        const std::array<const char*, 7> g_ErrorDescription = {
             "success",
             "bitstream corruption detected",
             "wrong source size",
             "out of input bytes",
             "unrecognized command",
-            "insufficient target capacity"
+            "insufficient target capacity",
+            "out of memory"
         };
     }
 }
@@ -54,6 +55,9 @@ void iguana::exception::from_error(error_code ec) {
         case error_code::unrecognized_command:
             throw unrecognized_command_exception();
 
+        case error_code::out_of_memory:
+            throw out_of_memory_exception();
+
         case error_code::ok:
             throw std::invalid_argument("unrecognized error code");
     }
@@ -68,3 +72,5 @@ iguana::out_of_input_data_exception::~out_of_input_data_exception() {}
 iguana::insufficient_target_capacity_exception::~insufficient_target_capacity_exception() {}
 
 iguana::unrecognized_command_exception::~unrecognized_command_exception() {}
+
+iguana::out_of_memory_exception::~out_of_memory_exception() {}

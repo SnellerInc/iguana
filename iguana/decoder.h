@@ -26,10 +26,53 @@ namespace iguana {
     private:
         class substream;
         struct context;
+    
+        //
+
+        class entropy_buffer final {
+        public:
+            static constexpr const std::size_t default_size = 1 << 20;
+
+        private:
+            std::uint8_t*   m_data = nullptr;
+            std::size_t     m_cursor = 0;
+            std::size_t     m_capacity = 0;
+
+        public:
+            explicit entropy_buffer(std::size_t n = default_size);
+            ~entropy_buffer();
+
+            entropy_buffer(const entropy_buffer&) = delete; 
+            entropy_buffer& operator =(const entropy_buffer&) = delete; 
+            entropy_buffer(entropy_buffer&& v);
+            entropy_buffer& operator =(entropy_buffer&& v);
+
+        public:
+            std::size_t cursor() const noexcept {
+                return m_cursor;
+            }
+
+            std::size_t capacity() const noexcept {
+                return m_capacity;
+            }
+
+            void reset() noexcept {
+                m_cursor = 0;
+            }
+
+            void reset(std::size_t n);
+
+        private:
+            static std::pair<std::uint8_t*, std::size_t> acquire_memory(std::size_t n);
+            static void release_memory(std::uint8_t* p);
+        };
 
     private:
         static void (*g_Decompress)(context& ctx);
         static const internal::initializer<decoder> g_Initializer;
+
+    private:
+        entropy_buffer m_ent_buf;
 
     public:
         decoder() {}

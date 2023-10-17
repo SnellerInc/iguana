@@ -24,7 +24,8 @@ namespace iguana {
         wrong_source_size,
         out_of_input_data,
         insufficient_target_capacity,
-        unrecognized_command
+        unrecognized_command,
+        out_of_memory
     };
 
     //
@@ -115,5 +116,19 @@ namespace iguana {
           : super(std::forward<TA>(args)...) {}
 
         virtual ~unrecognized_command_exception();
+    };
+
+    //
+
+    class IGUANA_API out_of_memory_exception : public exception {
+        using super = exception;
+
+    public:
+        template <
+            typename... TA
+        > explicit out_of_memory_exception(TA&&... args)
+          : super(std::forward<TA>(args)...) {}
+
+        virtual ~out_of_memory_exception();
     };
 }

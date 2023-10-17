@@ -12,6 +12,9 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#include <memory>
+#include <utility>
+#include <stdexcept>
 #include "decoder.h"
 #include "command.h"
 #include "entropy.h"
@@ -34,6 +37,11 @@ namespace iguana {
     static constexpr const std::uint32_t max_short_lit_len   = 7;
     static constexpr const std::uint32_t max_short_match_len = 15;
     static constexpr const std::uint32_t last_long_offset    = 31;
+
+    // We'd like to allow 64-byte loads at the final byte offset
+    // for each of the streams, so we need (64 - 1) bytes of valid memory
+    // past the end of the buffer.
+    static constexpr const std::size_t pad_size = (64 - 1);
 }
 
 //
@@ -145,17 +153,7 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
 
 
 IGUANA_UNIMPLEMENTED
-/*			var lenUncompressed, lenCompressed uint64
-			lenUncompressed, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
-			if ec != ecOK {
-				return dst, ec
-			}
-			lenCompressed, ctrlCursor, ec = readControlVarUint(src, ctrlCursor)
-			if ec != ecOK {
-				return dst, ec
-			}
-			ans := src[dataCursor : dataCursor+lenCompressed]
-			encoded, ec := ansNibbleDecodeTable(&d.ansnibtab, ans)
+/*TODO			encoded, ec := ansNibbleDecodeTable(&d.ansnibtab, ans)
 			if ec != ecOK {
 				return dst, ec
 			}
@@ -163,7 +161,6 @@ IGUANA_UNIMPLEMENTED
 			if ec != ecOK {
 				return dst, ec
 			}
-			dataCursor += lenCompressed
 */
         } break;
 
@@ -193,6 +190,9 @@ IGUANA_UNIMPLEMENTED
 						entropy_buffer_size += u_len;
 					}
 				}
+
+                m_ent_buf.reset(entropy_buffer_size + pad_size);                
+
 IGUANA_UNIMPLEMENTED
 /*TODO
 				if uint64(cap(d.entbuf)) < entropyBufferSize+padSize {
@@ -559,4 +559,54 @@ iguana::const_byte_span iguana::decoder::substream::fetch_sequence(std::size_t n
     auto * const p = m_cursor;
     m_cursor += n;
     return { p, n };
+}
+
+
+iguana::decoder::entropy_buffer::entropy_buffer(std::size_t n) {
+    const auto r = acquire_memory(n);
+    m_data = r.first;
+    m_cursor = 0;
+    m_capacity = r.second;
+}
+
+iguana::decoder::entropy_buffer::~entropy_buffer() {
+    release_memory(m_data);
+}
+
+iguana::decoder::entropy_buffer::entropy_buffer(entropy_buffer&& v) {
+    m_data = std::exchange(v.m_data, nullptr);
+    m_cursor = std::exchange(v.m_cursor, 0);
+    m_capacity = std::exchange(v.m_capacity, 0);
+}
+
+iguana::decoder::entropy_buffer& iguana::decoder::entropy_buffer::operator =(entropy_buffer&& v) {
+    if (this != &v) {
+        std::uint8_t* const p = std::exchange(m_data, std::exchange(v.m_data, nullptr));
+        m_cursor = std::exchange(v.m_cursor, 0);
+        m_capacity = std::exchange(v.m_capacity, 0);
+        release_memory(p);
+    }
+    return *this;
+}
+
+void iguana::decoder::entropy_buffer::reset(std::size_t n) {
+    m_cursor = 0;
+
+    if (n > capacity()) {
+        release_memory(std::exchange(m_data, nullptr));
+        const auto r = acquire_memory(n);
+        m_data = r.first;
+        m_capacity = r.second;
+    }
+}
+
+std::pair<std::uint8_t*, std::size_t> iguana::decoder::entropy_buffer::acquire_memory(std::size_t n) {
+    auto* const p = new std::uint8_t[n];
+    return { p, n };
+}
+
+void iguana::decoder::entropy_buffer::release_memory(std::uint8_t* p) {
+    if (p != nullptr) {
+        delete[] p;   
+    }
 }
