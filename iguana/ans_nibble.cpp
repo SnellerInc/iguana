@@ -15,5 +15,29 @@
 #include "ans_nibble.h"
 
 namespace iguana::ans_nibble {
+    void (*encoder::g_Compress)(context& ctx) = &encoder::compress_portable;
+    const internal::initializer<encoder> encoder::g_Initializer;
 
+    void (*decoder::g_Decompress)(context& ctx) = &decoder::decompress_portable;
+    const internal::initializer<decoder> decoder::g_Initializer;
+}
+
+iguana::ans_nibble::encoder::~encoder() noexcept {}
+
+void iguana::ans_nibble::encoder::at_process_start() {
+    printf("iguana::ans_nibble::encoder::at_process_start()\n");
+}
+
+void iguana::ans_nibble::encoder::at_process_end() {
+    printf("iguana::ans_nibble::encoder::at_process_end()\n");
+}
+
+iguana::ans_nibble::decoder::~decoder() noexcept {}
+
+void iguana::ans_nibble::decoder::at_process_start() {
+    printf("iguana::ans_nibble::decoder::at_process_start()\n");
+}
+
+void iguana::ans_nibble::decoder::at_process_end() {
+    printf("iguana::ans_nibble::decoder::at_process_end()\n");
 }

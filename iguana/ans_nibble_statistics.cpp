@@ -12,21 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include <cstdio>
-#include <cstdlib>
-#include "iguana/error.h"
+#include "ans_nibble_statistics.h"
 
-// TODO: use a proper makefile
-#include "iguana/ans_byte_statistics.cpp"
-#include "iguana/ans_nibble_statistics.cpp"
-#include "iguana/ans1.cpp"
-#include "iguana/ans32.cpp"
-#include "iguana/ans_nibble.cpp"
-#include "iguana/error.cpp"
-#include "iguana/output_stream.cpp"
-#include "iguana/decoder.cpp"
+//
 
-int main(int argc, char *argv[]) {
-    printf("Hello, world\n");
-    return EXIT_SUCCESS;
-}

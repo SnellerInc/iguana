@@ -15,7 +15,89 @@
 #pragma once
 #include <array>
 #include "common.h"
+#include "ans_nibble_statistics.h"
+
+//
 
 namespace iguana::ans_nibble {
 
+    class IGUANA_API encoder final : public ans::basic_encoder<encoder, ans::nibble_statistics> {
+        using super = ans::basic_encoder<encoder, ans::nibble_statistics>;
+        friend internal::initializer<encoder>;
+        struct context;
+        
+    private:
+        static void (*g_Compress)(context& ctx);
+        static const internal::initializer<encoder> g_Initializer;
+
+    public:
+        encoder() noexcept = default;
+        ~encoder() noexcept;
+
+        encoder(const encoder&) = delete;
+        encoder& operator =(const encoder&) = delete;
+
+        encoder(encoder&& v) = default;
+        encoder& operator =(encoder&& v) = default;
+
+    public:
+        void encode(output_stream& dst, const statistics& stats, const std::uint8_t *src, std::size_t src_len);
+        using super::encode;
+
+    private:
+        static void compress_portable(context& ctx);
+        static void at_process_start();
+        static void at_process_end();
+    };
+
+    //
+
+    struct encoder::context final {
+        output_stream&      dst;
+        const statistics&   stats;
+        const std::uint8_t  *src;
+        std::size_t         src_len;
+        error_code          ec;
+    };
+
+    //
+
+    class IGUANA_API decoder final : public ans::basic_decoder<decoder, ans::nibble_statistics> {
+        using super = ans::basic_decoder<decoder, ans::nibble_statistics>;
+        friend internal::initializer<decoder>;
+        struct context;
+
+    private:
+        static void (*g_Decompress)(context& ctx);
+        static const internal::initializer<decoder> g_Initializer;
+
+    public:
+        decoder() {}
+        ~decoder() noexcept;
+
+        decoder(const decoder&) = delete;
+        decoder& operator =(const decoder&) = delete;
+
+        decoder(decoder&& v) = default;
+        decoder& operator =(decoder&& v) = default;
+
+    public:
+        void decode(output_stream& dst, std::size_t result_size, input_stream& src, const statistics::decoding_table& tab);
+        using super::decode;
+
+    private:
+        static void decompress_portable(context& ctx);
+        static void at_process_start();
+        static void at_process_end();
+    };
+
+    //
+
+    struct decoder::context final {
+        output_stream&                      dst;
+        std::size_t                         result_size;
+        input_stream&                       src;
+        const statistics::decoding_table&   tab;
+        error_code                          ec;
+    };
 }

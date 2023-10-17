@@ -20,63 +20,63 @@
 #include "input_stream.h"
 #include "output_stream.h"
 
-namespace iguana::ans_nibble {
+namespace iguana::ans {
 
-    constexpr inline static std::size_t   word_M_bits = 12;
-    constexpr inline static std::size_t   word_L_bits = 16;
-    constexpr inline static std::uint32_t word_L = std::uint32_t(1) << word_L_bits;
-    constexpr inline static std::uint32_t word_M = std::uint32_t(1) << word_M_bits;
-/*TODO
-    //
-
-	constexpr inline static std::size_t ctrl_block_size         = 96;
-	constexpr inline static std::size_t nibble_block_max_length = 384; // 256 3-nibble groups
-	constexpr inline static std::size_t dense_table_max_length  = ctrl_block_size + nibble_block_max_length;
-
-    //
-
-    constexpr inline static std::size_t initial_buffer_size = 1 << 20;
-*/
-    //
-
-    class IGUANA_API statistics {
+    class IGUANA_API nibble_statistics {
         class builder;
         class bitstream;
 
     public:
-        using decoding_table = std::uint32_t[16];
-/*TODO
-    public:
+        constexpr inline static std::size_t   word_M_bits = 12;
+        constexpr inline static std::size_t   word_L_bits = 16;
+        constexpr inline static std::uint32_t word_L = std::uint32_t(1) << word_L_bits;
+        constexpr inline static std::uint32_t word_M = std::uint32_t(1) << word_M_bits;
+
+        //
+
         constexpr inline static std::uint32_t frequency_bits = word_M_bits;
         constexpr inline static std::uint32_t frequency_mask = (1 << frequency_bits) - 1;
         constexpr inline static std::uint32_t cumulative_frequency_bits = word_M_bits;
         constexpr inline static std::uint32_t cumulative_frequency_mask = (1 << cumulative_frequency_bits) - 1;
 
+    /*TODO    //
+
+        constexpr inline static std::size_t ctrl_block_size         = 96;
+        constexpr inline static std::size_t nibble_block_max_length = 384; // 256 3-nibble groups
+        constexpr inline static std::size_t dense_table_max_length  = ctrl_block_size + nibble_block_max_length;
+*/
+        //
+
+        constexpr inline static std::size_t initial_buffer_size = 1 << 20;
+
     public:
+        using decoding_table = std::uint32_t[16];
+
+    private:
         std::array<std::uint32_t, 16> m_table;
 
     public:
-        statistics() noexcept {
+        nibble_statistics() noexcept {
             memory::zero(m_table);
         }
 
-        explicit statistics(const_byte_span s) noexcept
-          : statistics(s.data(), s.size()) {}
+        explicit nibble_statistics(const_byte_span s) noexcept
+          : nibble_statistics(s.data(), s.size()) {}
 
-        statistics(const std::uint8_t *p, std::size_t n) noexcept
-          : statistics() {
+        nibble_statistics(const std::uint8_t *p, std::size_t n) noexcept
+          : nibble_statistics() {
             compute(p, n);
         }
 
-        explicit statistics(input_stream& s) {
+        explicit nibble_statistics(input_stream& s) {
             deserialize(s);
         }
 
-        ~statistics() = default;
-        statistics(const statistics&) = default;
-        statistics& operator =(const statistics&) = default;
-        statistics(statistics&&) = default;
-        statistics& operator =(statistics&&) = default;
+        ~nibble_statistics() = default;
+        nibble_statistics(const nibble_statistics&) = default;
+        nibble_statistics& operator =(const nibble_statistics&) = default;
+        nibble_statistics(nibble_statistics&&) = default;
+        nibble_statistics& operator =(nibble_statistics&&) = default;
 
     public:
         std::uint32_t operator [](std::size_t k) const noexcept {
@@ -96,7 +96,7 @@ namespace iguana::ans_nibble {
     public:
         void serialize(output_stream& s) const;
         void deserialize(input_stream& s);
-
+/*TODO
     private:
         static std::uint32_t fetch_nibble(input_stream& s, ssize_t& nibidx);*/
     };
