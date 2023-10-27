@@ -13,6 +13,8 @@
 //  limitations under the License.
 
 #pragma once
+#include <memory>
+#include <list>
 #include "common.h"
 #include "span.h"
 #include "error.h"
@@ -25,9 +27,15 @@ namespace iguana {
     class IGUANA_API encoder {
         friend internal::initializer<encoder>;
 
+    public:
+        using part_ptr = std::unique_ptr<std::uint8_t []>;
+
     private:
         static const internal::initializer<encoder> g_Initializer;
 
+    private:
+        std::list<part_ptr> m_parts;
+     
     public:
         encoder();
         ~encoder();
@@ -39,7 +47,11 @@ namespace iguana {
         encoder& operator =(encoder&&) = default;
      
     public:
-        void encode(const std::uint8_t* p, std::size_t n);
+        part_ptr encode_part(const std::uint8_t* p, std::size_t n);
+
+        part_ptr encode_part(const const_byte_span& s) {
+            return encode_part(s.data(), s.size());
+        }
 
     private:
         static void at_process_start();

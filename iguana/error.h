@@ -43,6 +43,7 @@ namespace iguana {
 
     public:
         virtual ~exception();
+        virtual error_code get_error_code() const noexcept = 0;
 
     public:
         [[noreturn]] static void from_error(error_code ec);
@@ -60,6 +61,9 @@ namespace iguana {
           : super(std::forward<TA>(args)...) {}
 
         virtual ~corrupted_bitstream_exception();
+
+    public:
+        virtual error_code get_error_code() const noexcept override final;
     };
 
     //
@@ -74,6 +78,9 @@ namespace iguana {
           : super(std::forward<TA>(args)...) {}
 
         virtual ~wrong_source_size_exception();
+
+    public:
+        virtual error_code get_error_code() const noexcept override final;
     };
 
     //
@@ -88,6 +95,9 @@ namespace iguana {
           : super(std::forward<TA>(args)...) {}
 
         virtual ~out_of_input_data_exception();
+
+    public:
+        virtual error_code get_error_code() const noexcept override final;
     };
 
     //
@@ -102,6 +112,9 @@ namespace iguana {
           : super(std::forward<TA>(args)...) {}
 
         virtual ~insufficient_target_capacity_exception();
+
+    public:
+        virtual error_code get_error_code() const noexcept override final;
     };
 
     //
@@ -116,6 +129,9 @@ namespace iguana {
           : super(std::forward<TA>(args)...) {}
 
         virtual ~unrecognized_command_exception();
+
+    public:
+        virtual error_code get_error_code() const noexcept override final;
     };
 
     //
@@ -130,5 +146,8 @@ namespace iguana {
           : super(std::forward<TA>(args)...) {}
 
         virtual ~out_of_memory_exception();
+
+    public:
+        virtual error_code get_error_code() const noexcept override final;
     };
 }

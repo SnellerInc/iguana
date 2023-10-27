@@ -12,28 +12,28 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "encoder.h"
+#pragma once
 
 //
 
-namespace iguana {
-    const internal::initializer<encoder> encoder::g_Initializer;
-}
+#include "platform.h"
 
 //
 
-iguana::encoder::encoder() {}
+enum iguana_error_code {
+    ok = 0,
+    corrupted_bitstream,
+    wrong_source_size,
+    out_of_input_data,
+    insufficient_target_capacity,
+    unrecognized_command,
+    out_of_memory
+};
 
-iguana::encoder::~encoder() {}
+//
 
-iguana::encoder::part_ptr iguana::encoder::encode_part(const std::uint8_t* p, std::size_t n) {
-    IGUANA_UNIMPLEMENTED
-}
+IGUANA_API const char* iguana_get_error_description(iguana_error_code ec);
 
-void iguana::encoder::at_process_start() {
-    printf("iguana::encoder::at_process_start()\n");
-}
+//
 
-void iguana::encoder::at_process_end() {
-    printf("iguana::encoder::at_process_end()\n");
-}
+IGUANA_API iguana_error_code iguana_compress(const uint8_t* p, size_t n);

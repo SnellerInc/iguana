@@ -14,6 +14,10 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <string>
+#include <stdexcept>
+#include <iostream>
 #include "iguana/error.h"
 
 // TODO: use a proper makefile
@@ -27,8 +31,39 @@
 #include "iguana/output_stream.cpp"
 #include "iguana/decoder.cpp"
 #include "iguana/encoder.cpp"
+#include "iguana/c_bindings.cpp"
 
-int main(int argc, char *argv[]) {
-    printf("Hello, world\n");
+//
+
+namespace iguana {
+    
+}
+
+//
+
+int main(int argc, char *argv[]) try {
+    printf("argc = %d\n", argc); 
+/*
+    for(int i = 1; i < argc; ++i) {
+        const char* const opt = argv[i];
+
+        if (std::strcmp(opt, "-d") == 0) {
+            if (
+        }
+    }
+*/
+    //printf("path = %s\n");
+
+    throw std::invalid_argument("jeblo");
+
+ //   printf("Hello, world\n");
     return EXIT_SUCCESS;
+
+} catch(const std::exception& e) {
+    std::cerr << "exception: " << e.what() << std::endl;
+    return EXIT_FAILURE;
+
+} catch(...) {
+    std::cerr << "unrecognized exception" << std::endl;
+    return EXIT_FAILURE;
 }

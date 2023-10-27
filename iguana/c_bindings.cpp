@@ -12,28 +12,22 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "encoder.h"
+#include "c_bindings.h"
+#include "error.h"
 
 //
 
-namespace iguana {
-    const internal::initializer<encoder> encoder::g_Initializer;
+const char* iguana_get_error_description(iguana_error_code ec) {
+    return iguana::get_error_description(static_cast<iguana::error_code>(ec));
 }
 
 //
 
-iguana::encoder::encoder() {}
+iguana_error_code iguana_compress(const uint8_t* p, size_t n) try {
+    // TODO    
 
-iguana::encoder::~encoder() {}
-
-iguana::encoder::part_ptr iguana::encoder::encode_part(const std::uint8_t* p, std::size_t n) {
-    IGUANA_UNIMPLEMENTED
-}
-
-void iguana::encoder::at_process_start() {
-    printf("iguana::encoder::at_process_start()\n");
-}
-
-void iguana::encoder::at_process_end() {
-    printf("iguana::encoder::at_process_end()\n");
+} catch(const iguana::exception& e) {
+    return static_cast<iguana_error_code>(e.get_error_code());
+} catch(...) {
+    return corrupted_bitstream;
 }

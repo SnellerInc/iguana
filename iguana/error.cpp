@@ -65,12 +65,36 @@ void iguana::exception::from_error(error_code ec) {
 
 iguana::corrupted_bitstream_exception::~corrupted_bitstream_exception() {}
 
+iguana::error_code iguana::corrupted_bitstream_exception::get_error_code() const noexcept {
+    return error_code::corrupted_bitstream;
+}
+
 iguana::wrong_source_size_exception::~wrong_source_size_exception() {}
+
+iguana::error_code iguana::wrong_source_size_exception::get_error_code() const noexcept {
+    return error_code::wrong_source_size;
+}
 
 iguana::out_of_input_data_exception::~out_of_input_data_exception() {}
 
+iguana::error_code iguana::out_of_input_data_exception::get_error_code() const noexcept {
+    return error_code::out_of_input_data;
+}
+
 iguana::insufficient_target_capacity_exception::~insufficient_target_capacity_exception() {}
+
+iguana::error_code iguana::insufficient_target_capacity_exception::get_error_code() const noexcept {
+    return error_code::insufficient_target_capacity;
+}
 
 iguana::unrecognized_command_exception::~unrecognized_command_exception() {}
 
+iguana::error_code iguana::unrecognized_command_exception::get_error_code() const noexcept {
+    return error_code::unrecognized_command;
+}
+
 iguana::out_of_memory_exception::~out_of_memory_exception() {}
+
+iguana::error_code iguana::out_of_memory_exception::get_error_code() const noexcept {
+    return error_code::out_of_memory;
+}
