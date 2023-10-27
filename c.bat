@@ -1,1 +1,1 @@
-clang++ -Wall -std=gnu++17 -DIGUANA_STATIC main.cpp 
+clang++ -Wall -std=gnu++20 -DIGUANA_STATIC main.cpp 
