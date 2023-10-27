@@ -12,12 +12,41 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
+#include <cstring>
+#include <stdexcept>
 #include "encoder.h"
 
 //
 
 namespace iguana {
     const internal::initializer<encoder> encoder::g_Initializer;
+}
+
+//
+
+iguana::encoding iguana::encoding_from_string(const char* name) {
+    if (std::strcmp(name, "iguana") == 0) {
+        return encoding::iguana;
+    }
+
+    if (std::strcmp(name, "raw") == 0) {
+        return encoding::raw;
+    }
+
+    throw std::invalid_argument(std::string("unrecognized encoding '") + name + "'");
+}
+
+const char* iguana::to_string(encoding e) {
+    switch(e) {
+        case encoding::iguana:
+            return "iguana";
+
+        case encoding::raw:
+            return "raw";
+
+        default:
+            throw std::invalid_argument("unrecognized encoding value");        
+    }
 }
 
 //

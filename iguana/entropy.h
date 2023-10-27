@@ -13,6 +13,7 @@
 //  limitations under the License.
 
 #pragma once
+#include <string>
 #include "common.h"
 
 namespace iguana {
@@ -22,5 +23,10 @@ namespace iguana {
         ans32   = 0x01,     // Vectorized, 32-way interleaved 8-bit rANS entropy compression should be applied
         ans1    = 0x02,     // Scalar, one-way 8-bit rANS entropy compression should be applied
         ans_nibble = 0x03   // Scalar, one-way 4-bit rANS entropy compression should be applied
-    };  
+    };
+
+    //
+
+    entropy_mode entropy_mode_from_string(const char* name);
+    const char* to_string(entropy_mode m);
 }

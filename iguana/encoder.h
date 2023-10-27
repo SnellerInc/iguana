@@ -18,16 +18,26 @@
 #include "common.h"
 #include "span.h"
 #include "error.h"
-#include "input_stream.h"
-#include "output_stream.h"
+#include "entropy.h"
 
 //
 
 namespace iguana {
+    enum class encoding : std::uint8_t {
+        raw = 0,        // No structural compression is applied
+        iguana = 1 << 0 // Iguana structural compression is applied
+    };
+
+    encoding encoding_from_string(const char* name);
+    const char* to_string(encoding e);
+
+    //
+    
     class IGUANA_API encoder {
         friend internal::initializer<encoder>;
 
     public:
+        struct request;
         using part_ptr = std::unique_ptr<std::uint8_t []>;
 
     private:
@@ -56,5 +66,15 @@ namespace iguana {
     private:
         static void at_process_start();
         static void at_process_end();
+    };
+
+    //
+
+    struct encoder::request final {
+        const std::uint8_t* m_data;
+        std::size_t         m_size;
+        entropy_mode        m_entropy_mode;
+        encoding            m_encoding;
+        double              m_rejection_threshold;
     };
 }
