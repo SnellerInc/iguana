@@ -139,7 +139,7 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
                 const std::uint64_t len_uncompressed = read_control_var_uint(src, ctrl_cursor);
                 const std::uint64_t len_compressed = read_control_var_uint(src, ctrl_cursor);
 
-                 {  ans_nibble::decoder::statistics::decoding_table ans_tab;
+                {   ans_nibble::decoder::statistics::decoding_table ans_tab;
                     input_stream is{src + data_cursor, std::size_t(len_compressed)};
                     data_cursor += len_compressed;
                     // Recover the ANS decoding table from the input stream                
@@ -149,6 +149,7 @@ func (d *Decoder) decode(, dst []byte, src []byte) ([]byte, errorCode) {
                     ans_nibble::decoder{}.decode(dst, static_cast<std::size_t>(len_uncompressed), is, ans_tab);
                 }
 
+                
 
 
 
@@ -192,19 +193,14 @@ IGUANA_UNIMPLEMENTED
 				}
 
                 m_ent_buf.reset(entropy_buffer_size + pad_size);                
-
-IGUANA_UNIMPLEMENTED
-/*TODO
-				if uint64(cap(d.entbuf)) < entropyBufferSize+padSize {
-					// ensure the output is appropriately padded:
-					d.entbuf = make([]byte, entropyBufferSize, entropyBufferSize+padSize)
-				}
-*/
 				std::uint64_t ent_offs = 0;
 
 				for(std::size_t i = 0; i != substream::count; ++i) {
 					const auto u_len = u_lens[i];
 					if (const auto em = static_cast<entropy_mode>((hdr >> (i * 4)) & 0x0f); em == entropy_mode::none) {
+                        ctx.streams[i].set(src + data_cursor, std::size_t(u_len));
+                       
+
 IGUANA_UNIMPLEMENTED
 		//TODO				ctx.pack[i].set = d.padStream(i, src[dataCursor:dataCursor+uLen])
 						data_cursor += u_len;
@@ -219,6 +215,7 @@ IGUANA_UNIMPLEMENTED
                             data_cursor += c_len;
                             ans32::decoder::statistics{is}.build_decoding_table(ans_tab);
                         }
+                        
                         
                                           
       
@@ -429,7 +426,6 @@ void iguana::decoder::at_process_start() {
 void iguana::decoder::at_process_end() {
     printf("iguana::decoder::at_process_end()\n");
 }
-
 
 std::uint8_t iguana::decoder::substream::fetch8(error_code& ec) noexcept {
     if (empty()) {
