@@ -14,8 +14,10 @@
 
 #include <cstring>
 #include <stdexcept>
+#include <numeric>
 #include "encoder.h"
 #include "bitops.h"
+#include "error.h"
 
 //
 
@@ -73,68 +75,73 @@ void iguana::encoder::encode(output_stream& dst, const std::uint8_t* p, std::siz
     encode(dst, prt);   
 }
 
-void iguana::encoder::encode(output_stream& dst, const part* p_parts, std::size_t n_parts) {
-    m_control.clear();
+void iguana::encoder::encode(output_stream& dst, const part& p) {
+    append_control_var_uint(p.m_size);
+    encode_part(dst, p);
 
+	// Append the control bytes in reverse order
+    dst.append_reverse(m_control.data(), m_control.size());
+    m_control.clear();
+}
+
+void iguana::encoder::encode(output_stream& dst, const part* first, const part* last) {
     // Compute the total input size
-    {   auto total_input_size = std::uint64_t(0);
-        for(std::size_t i = 0; i != n_parts; ++i) {
-            total_input_size += p_parts->m_size;   
-        }
+    {   const auto total_input_size = std::accumulate(
+            first,
+            last,
+            std::uint64_t(0),
+            [](std::uint64_t lhs, const part& rhs) {
+                return lhs + rhs.m_size;
+            }
+        );
         append_control_var_uint(total_input_size);
     }
 
-    IGUANA_UNIMPLEMENTED
-
-/*
-	for _, req := range reqs {
-		srcLen := len(req.Src)
-		if srcLen < 0 {
-			return nil, fmt.Errorf("invalid input size %d", srcLen)
-		} else if srcLen == 0 {
-			continue
-		}
-		switch req.EncMode {
-
-		case EncodingRaw:
-			switch req.EntMode {
-			case EntropyNone:
-				if err := es.encodeRaw(req.Src); err != nil {
-					return nil, err
-				}
-			case EntropyANS32:
-				if err := es.encodeANS32(&req); err != nil {
-					return nil, err
-				}
-			case EntropyANS1:
-				if err := es.encodeANS1(&req); err != nil {
-					return nil, err
-				}
-			case EntropyANSNibble:
-				if err := es.encodeANSNibble(&req); err != nil {
-					return nil, err
-				}
-			default:
-				return nil, fmt.Errorf("unrecognized entropy mode %02x", req.EntMode)
-			}
-
-		case EncodingIguana:
-			if err := es.encodeIguana(&req); err != nil {
-				return nil, err
-			}
-
-		default:
-			return nil, fmt.Errorf("unrecognized encoding mode %02x", req.EncMode)
-		}
-	}
+    for(const auto* i = first; i != last; ++i) {
+        encode_part(dst, *i);
+    }
 
 	// Append the control bytes in reverse order
+    dst.append_reverse(m_control.data(), m_control.size());
+    m_control.clear();
+}
 
-	for i := len(es.ctrl) - 1; i >= 0; i-- {
-		es.dst = append(es.dst, es.ctrl[i])
-	}
-	return es.dst, nil
-    */
+void iguana::encoder::encode_part(output_stream& dst, const part& p) {
+    if (SELDOM(p.m_size == 0)) {
+        return;
+    }
+
+    switch(p.m_encoding) {
+    case encoding::raw:
+        switch(p.m_entropy_mode) {
+        case entropy_mode::none:
+            encode_raw(dst, p);
+            break;
+
+        case entropy_mode::ans32:
+            encode_ans32(dst, p);
+            break;
+
+        case entropy_mode::ans1:
+            encode_ans1(dst, p);
+            break;
+
+        case entropy_mode::ans_nibble:
+            encode_ans_nibble(dst, p);
+            break;
+
+        default:
+            throw std::invalid_argument(std::string("unrecognized entropy mode '") + to_string(p.m_entropy_mode) + "'");              
+        }
+        break;
+
+    case encoding::iguana:
+        encode_iguana(dst, p);
+        break;
+
+    default:
+        throw std::invalid_argument(std::string("unrecognized encoding '") + to_string(p.m_encoding) + "'");
+    }
 }
 
 void iguana::encoder::append_control_var_uint(std::uint64_t v) {
@@ -149,8 +156,22 @@ void iguana::encoder::append_control_var_uint(std::uint64_t v) {
 	}
 }
 
-/* TODO:
-iguana::encoder::part_ptr iguana::encoder::encode_part(const std::uint8_t* p, std::size_t n) {
+void iguana::encoder::encode_raw(output_stream& dst, const part& p) {
     IGUANA_UNIMPLEMENTED
 }
-*/
+
+void iguana::encoder::encode_iguana(output_stream& dst, const part& p) {
+    IGUANA_UNIMPLEMENTED
+}
+
+void iguana::encoder::encode_ans32(output_stream& dst, const part& p) {
+    IGUANA_UNIMPLEMENTED
+}
+
+void iguana::encoder::encode_ans1(output_stream& dst, const part& p) {
+    IGUANA_UNIMPLEMENTED
+}
+
+void iguana::encoder::encode_ans_nibble(output_stream& dst, const part& p) {
+    IGUANA_UNIMPLEMENTED
+}

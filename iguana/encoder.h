@@ -36,11 +36,16 @@ namespace iguana {
     
     class IGUANA_API encoder {
         friend internal::initializer<encoder>;
-        struct context;
-        class stream;
 
     public:
-        struct part;
+
+        struct part final {
+            const std::uint8_t* m_data;
+            std::size_t         m_size;
+            entropy_mode        m_entropy_mode;
+            encoding            m_encoding;
+            double              m_rejection_threshold;
+        };
 
     public:
         static constexpr inline double default_rejection_threshold = 1.0;
@@ -62,10 +67,11 @@ namespace iguana {
         encoder& operator =(encoder&&) = default;
      
     public:
-        void encode(output_stream& dst, const part* p_parts, std::size_t n_parts);
+        void encode(output_stream& dst, const part& p);
+        void encode(output_stream& dst, const part* first, const part* last);
 
-        void encode(output_stream& dst, const part& p) {
-            encode(dst, &p, 1);
+        void encode(output_stream& dst, const part* first, std::size_t n_parts) {
+            encode(dst, first, first + n_parts);
         }
 
         void encode(output_stream& dst, const std::uint8_t* p, std::size_t n);
@@ -75,17 +81,16 @@ namespace iguana {
         static void at_process_end();
 
         //
+        
+        void encode_part(output_stream& dst, const part& p);
+        void encode_raw(output_stream& dst, const part& p);
+        void encode_iguana(output_stream& dst, const part& p);
+        void encode_ans32(output_stream& dst, const part& p);
+        void encode_ans1(output_stream& dst, const part& p);
+        void encode_ans_nibble(output_stream& dst, const part& p);
+
+        //
 
         void append_control_var_uint(std::uint64_t v);
-    };
-
-    //
-
-    struct encoder::part final {
-        const std::uint8_t* m_data;
-        std::size_t         m_size;
-        entropy_mode        m_entropy_mode;
-        encoding            m_encoding;
-        double              m_rejection_threshold;
     };
 }
