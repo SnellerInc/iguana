@@ -27,5 +27,5 @@ namespace iguana {
     //
 
 	static constexpr const std::uint8_t last_command_marker = 0x80;
-	static constexpr const std::uint8_t command_mask = last_command_marker ^ 0xff;
+	static constexpr const std::uint8_t command_mask = std::uint8_t(~last_command_marker);
 }

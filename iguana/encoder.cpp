@@ -76,6 +76,7 @@ void iguana::encoder::encode(output_stream& dst, const std::uint8_t* p, std::siz
 }
 
 void iguana::encoder::encode(output_stream& dst, const part& p) {
+    m_last_command_offset = -1;
     append_control_var_uint(p.m_size);
     encode_part(dst, p);
 
@@ -85,6 +86,8 @@ void iguana::encoder::encode(output_stream& dst, const part& p) {
 }
 
 void iguana::encoder::encode(output_stream& dst, const part* first, const part* last) {
+    m_last_command_offset = -1;
+
     // Compute the total input size
     {   const auto total_input_size = std::accumulate(
             first,
@@ -156,8 +159,19 @@ void iguana::encoder::append_control_var_uint(std::uint64_t v) {
 	}
 }
 
+void iguana::encoder::append_control_command(command cmd) {
+	if (m_last_command_offset >= 0) {
+		m_control[m_last_command_offset] &= command_mask;
+	}
+
+	m_last_command_offset = m_control.size();
+    m_control.push_back(static_cast<std::uint8_t>(cmd) | last_command_marker);
+}
+
 void iguana::encoder::encode_raw(output_stream& dst, const part& p) {
-    IGUANA_UNIMPLEMENTED
+	append_control_command(command::copy_raw);
+    append_control_var_uint(p.m_size);
+    dst.append(p.m_data, p.m_size);
 }
 
 void iguana::encoder::encode_iguana(output_stream& dst, const part& p) {

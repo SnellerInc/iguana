@@ -20,6 +20,7 @@
 #include "error.h"
 #include "entropy.h"
 #include "output_stream.h"
+#include "command.h"
 
 //
 
@@ -54,7 +55,8 @@ namespace iguana {
         static const internal::initializer<encoder> g_Initializer;
      
     private:
-        std::vector<std::uint8_t> m_control;
+        std::vector<std::uint8_t>   m_control;
+        std::ptrdiff_t              m_last_command_offset = -1;
 
     public:
         encoder();
@@ -92,5 +94,6 @@ namespace iguana {
         //
 
         void append_control_var_uint(std::uint64_t v);
+        void append_control_command(command cmd);
     };
 }
