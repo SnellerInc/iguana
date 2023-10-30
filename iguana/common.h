@@ -46,6 +46,12 @@ namespace iguana {
             initializer& operator =(initializer&&) = delete;
         };
     }
+
+    namespace internal {
+        [[noreturn]] void unimplemented(const char* file_name, std::uint64_t line);
+    }
 }
 
-#define IGUANA_UNIMPLEMENTED for(;;) { std::abort(); } // For porting purposes only, remove me when done!
+//
+
+#define IGUANA_UNIMPLEMENTED iguana::internal::unimplemented(__FILE__, __LINE__);
