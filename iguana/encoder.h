@@ -72,7 +72,7 @@ namespace iguana {
 
         //
 
-        void append_control_var_uint(output_stream& dst, std::uint64_t v);
+        static void append_control_var_uint(output_stream& dst, std::uint64_t v);
     };
 
     //

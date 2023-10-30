@@ -101,7 +101,7 @@ void iguana::ans_nibble::decoder::decompress_portable(context& ctx) {
 	}
 
     const std::uint8_t* const src = ctx.src.data();
-	auto state = memory::read_little_endian<std::uint32_t>(src + src_len - 4);
+	auto state = utils::read_little_endian<std::uint32_t>(src + src_len - 4);
 	auto cursor_src = src_len - 6;
     std::size_t cursor_dst = 0;
 
@@ -118,7 +118,7 @@ void iguana::ans_nibble::decoder::decompress_portable(context& ctx) {
             lo_nib = static_cast<std::uint8_t>(t >> 24);
 			// Normalize
 			if (const std::uint32_t y = state; y < statistics::word_L) {
-				const auto z = memory::read_little_endian<std::uint16_t>(src + cursor_src);
+				const auto z = utils::read_little_endian<std::uint16_t>(src + cursor_src);
 				cursor_src -= 2;
 				state = (y << statistics::word_L_bits) | static_cast<std::uint32_t>(z);
 			}
@@ -136,7 +136,7 @@ void iguana::ans_nibble::decoder::decompress_portable(context& ctx) {
             hi_nib = static_cast<std::uint8_t>(t >> 24);
 			// Normalize
 			if (const std::uint32_t y = state; y < statistics::word_L) {
-				const auto z = memory::read_little_endian<std::uint16_t>(src + cursor_src);
+				const auto z = utils::read_little_endian<std::uint16_t>(src + cursor_src);
 				cursor_src -= 2;
 				state = (y << statistics::word_L_bits) | static_cast<std::uint32_t>(z);
 			}

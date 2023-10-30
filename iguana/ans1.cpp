@@ -94,7 +94,7 @@ void iguana::ans1::decoder::decompress_portable(context& ctx) {
 
 	auto cursor_src = src_len - 4;
     const std::uint8_t* const src = ctx.src.data();
-	auto state = memory::read_little_endian<std::uint32_t>(src + cursor_src);
+	auto state = utils::read_little_endian<std::uint32_t>(src + cursor_src);
     std::size_t cursor_dst = 0;
 
 	for(;;) {
@@ -114,7 +114,7 @@ void iguana::ans1::decoder::decompress_portable(context& ctx) {
 
 		// Normalize state
 		if (const auto x = state; x < statistics::word_L) {
-			const auto v = memory::read_little_endian<std::uint16_t>(src + cursor_src - 2);
+			const auto v = utils::read_little_endian<std::uint16_t>(src + cursor_src - 2);
 			cursor_src -= 2;
 			state = (x << statistics::word_L_bits) | std::uint32_t(v);
 		}

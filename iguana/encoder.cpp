@@ -81,6 +81,8 @@ void iguana::encoder::encode(output_stream& dst, const part* p_parts, std::size_
         append_control_var_uint(dst, total_input_size);
     }
 
+    IGUANA_UNIMPLEMENTED
+
 /*
 	for _, req := range reqs {
 		srcLen := len(req.Src)
@@ -133,7 +135,6 @@ void iguana::encoder::encode(output_stream& dst, const part* p_parts, std::size_
 }
 
 void iguana::encoder::append_control_var_uint(output_stream& dst, std::uint64_t v) {
-    IGUANA_UNIMPLEMENTED
 }
 
 /* TODO:

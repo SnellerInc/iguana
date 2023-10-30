@@ -144,8 +144,8 @@ void iguana::ans32::decoder::decompress_portable(context& ctx) {
     const std::uint8_t* const src = ctx.src.data();
 
 	for(std::size_t lane = 0; lane != 16; ++lane) {
-		state[lane]    = memory::read_little_endian<std::uint32_t>(src + lane * 4);
-		state[lane+16] = memory::read_little_endian<std::uint32_t>(src + lane * 4 + cursor_rev);
+		state[lane]    = utils::read_little_endian<std::uint32_t>(src + lane * 4);
+		state[lane+16] = utils::read_little_endian<std::uint32_t>(src + lane * 4 + cursor_rev);
 	}
 
 	std::size_t cursor_dst = 0;
@@ -170,7 +170,7 @@ void iguana::ans32::decoder::decompress_portable(context& ctx) {
 		// Normalize the forward part
 		for(std::size_t lane = 0; lane != 16; ++lane) {
 			if (const auto x = state[lane]; x < statistics::word_L) {
-				const auto v = memory::read_little_endian<std::uint16_t>(src + cursor_fwd);
+				const auto v = utils::read_little_endian<std::uint16_t>(src + cursor_fwd);
 				cursor_fwd += 2;
 				state[lane] = (x << statistics::word_L_bits) | std::uint32_t(v);
 			}
@@ -178,7 +178,7 @@ void iguana::ans32::decoder::decompress_portable(context& ctx) {
 		// Normalize the reverse part
 		for(std::size_t lane = 16; lane != 32; ++lane) {
 			if (const auto x = state[lane]; x < statistics::word_L) {
-				const auto v = memory::read_little_endian<std::uint16_t>(src + cursor_rev - 2);
+				const auto v = utils::read_little_endian<std::uint16_t>(src + cursor_rev - 2);
 				cursor_rev -= 2;
 				state[lane] = (x << statistics::word_L_bits) | std::uint32_t(v);
 			}
