@@ -24,6 +24,7 @@
 #include "iguana/error.h"
 
 // TODO: use a proper makefile
+#include "iguana/common.cpp"
 #include "iguana/ans_byte_statistics.cpp"
 #include "iguana/ans_nibble_statistics.cpp"
 #include "iguana/ans1.cpp"
@@ -262,14 +263,19 @@ int main(int argc, char *argv[]) try {
         
         } else {
 
-            const iguana::encoder::part ep = {
-                .m_entropy_mode = iguana::entropy_mode_from_string(options.get<std::string>("entropy", "ans32").c_str()),
-                .m_encoding = iguana::encoding_from_string(options.get<std::string>("encoding", "iguana").c_str()),
-                .m_rejection_threshold = options.get<double>("threshold", 1.0)
-            };
+            iguana::output_stream dst;
 
-            iguana::encoder enc;
-            enc.encode(ep);   
+            {   const iguana::encoder::part ep = {
+                    .m_entropy_mode = iguana::entropy_mode_from_string(options.get<std::string>("entropy", "ans32").c_str()),
+                    .m_encoding = iguana::encoding_from_string(options.get<std::string>("encoding", "iguana").c_str()),
+                    .m_rejection_threshold = options.get<double>("threshold", 1.0)
+                };
+
+                iguana::encoder enc;
+                enc.encode(dst, ep);
+            }
+
+            printf("dst len = %zu\n", dst.size());
         }
     }
     return EXIT_SUCCESS;

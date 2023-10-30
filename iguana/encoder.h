@@ -18,6 +18,7 @@
 #include "span.h"
 #include "error.h"
 #include "entropy.h"
+#include "output_stream.h"
 
 //
 
@@ -34,6 +35,8 @@ namespace iguana {
     
     class IGUANA_API encoder {
         friend internal::initializer<encoder>;
+        struct context;
+        class stream;
 
     public:
         struct part;
@@ -55,17 +58,21 @@ namespace iguana {
         encoder& operator =(encoder&&) = default;
      
     public:
-        void encode(const part* p_parts, std::size_t n_parts);
+        void encode(output_stream& dst, const part* p_parts, std::size_t n_parts);
 
-        void encode(const part& p) {
-            encode(&p, 1);
+        void encode(output_stream& dst, const part& p) {
+            encode(dst, &p, 1);
         }
 
-        void encode(const std::uint8_t* p, std::size_t n);
+        void encode(output_stream& dst, const std::uint8_t* p, std::size_t n);
 
     private:
         static void at_process_start();
         static void at_process_end();
+
+        //
+
+        void append_control_var_uint(output_stream& dst, std::uint64_t v);
     };
 
     //

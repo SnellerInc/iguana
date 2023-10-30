@@ -63,21 +63,80 @@ void iguana::encoder::at_process_end() {
     printf("iguana::encoder::at_process_end()\n");
 }
 
-void iguana::encoder::encode(const std::uint8_t* p, std::size_t n) {
+void iguana::encoder::encode(output_stream& dst, const std::uint8_t* p, std::size_t n) {
     const part prt = {
         .m_entropy_mode = iguana::entropy_mode::ans32,
         .m_encoding = iguana::encoding::iguana,
         .m_rejection_threshold = default_rejection_threshold
     };
-    encode(prt);   
+    encode(dst, prt);   
 }
 
-void iguana::encoder::encode(const part* p_parts, std::size_t n_parts) {
-    
-
-}
+void iguana::encoder::encode(output_stream& dst, const part* p_parts, std::size_t n_parts) {
+    // Compute the total input size
+    {   auto total_input_size = std::uint64_t(0);
+        for(std::size_t i = 0; i != n_parts; ++i) {
+            total_input_size += p_parts->m_size;   
+        }
+        append_control_var_uint(dst, total_input_size);
+    }
 
 /*
+	for _, req := range reqs {
+		srcLen := len(req.Src)
+		if srcLen < 0 {
+			return nil, fmt.Errorf("invalid input size %d", srcLen)
+		} else if srcLen == 0 {
+			continue
+		}
+		switch req.EncMode {
+
+		case EncodingRaw:
+			switch req.EntMode {
+			case EntropyNone:
+				if err := es.encodeRaw(req.Src); err != nil {
+					return nil, err
+				}
+			case EntropyANS32:
+				if err := es.encodeANS32(&req); err != nil {
+					return nil, err
+				}
+			case EntropyANS1:
+				if err := es.encodeANS1(&req); err != nil {
+					return nil, err
+				}
+			case EntropyANSNibble:
+				if err := es.encodeANSNibble(&req); err != nil {
+					return nil, err
+				}
+			default:
+				return nil, fmt.Errorf("unrecognized entropy mode %02x", req.EntMode)
+			}
+
+		case EncodingIguana:
+			if err := es.encodeIguana(&req); err != nil {
+				return nil, err
+			}
+
+		default:
+			return nil, fmt.Errorf("unrecognized encoding mode %02x", req.EncMode)
+		}
+	}
+
+	// Append the control bytes in reverse order
+
+	for i := len(es.ctrl) - 1; i >= 0; i-- {
+		es.dst = append(es.dst, es.ctrl[i])
+	}
+	return es.dst, nil
+    */
+}
+
+void iguana::encoder::append_control_var_uint(output_stream& dst, std::uint64_t v) {
+    IGUANA_UNIMPLEMENTED
+}
+
+/* TODO:
 iguana::encoder::part_ptr iguana::encoder::encode_part(const std::uint8_t* p, std::size_t n) {
     IGUANA_UNIMPLEMENTED
 }
