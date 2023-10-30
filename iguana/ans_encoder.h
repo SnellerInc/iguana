@@ -41,7 +41,7 @@ namespace iguana::ans {
         void encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len);
 
         void encode(output_stream& dst, const statistics& stats, const const_byte_span& src) {
-            T::encode(dst, stats, src.data(), src.size());
+            static_cast<T_CONCRETE*>(this)->encode(dst, stats, src.data(), src.size());
         }
 
         void encode(output_stream& dst, const const_byte_span& src) {
@@ -54,10 +54,10 @@ namespace iguana::ans {
     template <
         typename T_CONCRETE,
         typename T_STATISTICS
-    > void basic_encoder <
+    > inline void basic_encoder <
         T_CONCRETE,
         T_STATISTICS
     >::encode(output_stream& dst, const std::uint8_t *src, std::size_t src_len) {
-        T::encode(dst, statistics(src, src_len), src, src_len);
+        static_cast<T_CONCRETE*>(this)->encode(dst, statistics(src, src_len), src, src_len);
     }
 }
