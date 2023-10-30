@@ -15,6 +15,7 @@
 #include <cstring>
 #include <stdexcept>
 #include "encoder.h"
+#include "bitops.h"
 
 //
 
@@ -73,12 +74,14 @@ void iguana::encoder::encode(output_stream& dst, const std::uint8_t* p, std::siz
 }
 
 void iguana::encoder::encode(output_stream& dst, const part* p_parts, std::size_t n_parts) {
+    m_control.clear();
+
     // Compute the total input size
     {   auto total_input_size = std::uint64_t(0);
         for(std::size_t i = 0; i != n_parts; ++i) {
             total_input_size += p_parts->m_size;   
         }
-        append_control_var_uint(dst, total_input_size);
+        append_control_var_uint(total_input_size);
     }
 
     IGUANA_UNIMPLEMENTED
@@ -134,7 +137,16 @@ void iguana::encoder::encode(output_stream& dst, const part* p_parts, std::size_
     */
 }
 
-void iguana::encoder::append_control_var_uint(output_stream& dst, std::uint64_t v) {
+void iguana::encoder::append_control_var_uint(std::uint64_t v) {
+    const auto cnt = (bit::length(v) / 7) + 1;
+
+	for(auto i = static_cast<int>(cnt) - 1; i >= 0; --i) {
+		auto x = static_cast<std::uint8_t>((v >> (i*7)) & 0x7f);
+		if (i == 0) {
+			x |= 0x80;
+		}
+        m_control.push_back(x);
+	}
 }
 
 /* TODO:

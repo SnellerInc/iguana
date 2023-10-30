@@ -14,6 +14,7 @@
 
 #pragma once
 #include <memory>
+#include <vector>
 #include "common.h"
 #include "span.h"
 #include "error.h"
@@ -47,6 +48,9 @@ namespace iguana {
     private:
         static const internal::initializer<encoder> g_Initializer;
      
+    private:
+        std::vector<std::uint8_t> m_control;
+
     public:
         encoder();
         ~encoder();
@@ -72,7 +76,7 @@ namespace iguana {
 
         //
 
-        static void append_control_var_uint(output_stream& dst, std::uint64_t v);
+        void append_control_var_uint(std::uint64_t v);
     };
 
     //
