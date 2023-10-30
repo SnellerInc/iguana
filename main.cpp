@@ -262,14 +262,14 @@ int main(int argc, char *argv[]) try {
         
         } else {
 
-            const iguana::encoder::request req = {
+            const iguana::encoder::part ep = {
                 .m_entropy_mode = iguana::entropy_mode_from_string(options.get<std::string>("entropy", "ans32").c_str()),
                 .m_encoding = iguana::encoding_from_string(options.get<std::string>("encoding", "iguana").c_str()),
                 .m_rejection_threshold = options.get<double>("threshold", 1.0)
             };
 
             iguana::encoder enc;
-//            enc.encode();   
+            enc.encode(ep);   
         }
     }
     return EXIT_SUCCESS;

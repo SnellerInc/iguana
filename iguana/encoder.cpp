@@ -55,10 +55,6 @@ iguana::encoder::encoder() {}
 
 iguana::encoder::~encoder() {}
 
-iguana::encoder::part_ptr iguana::encoder::encode_part(const std::uint8_t* p, std::size_t n) {
-    IGUANA_UNIMPLEMENTED
-}
-
 void iguana::encoder::at_process_start() {
     printf("iguana::encoder::at_process_start()\n");
 }
@@ -66,3 +62,23 @@ void iguana::encoder::at_process_start() {
 void iguana::encoder::at_process_end() {
     printf("iguana::encoder::at_process_end()\n");
 }
+
+void iguana::encoder::encode(const std::uint8_t* p, std::size_t n) {
+    const part prt = {
+        .m_entropy_mode = iguana::entropy_mode::ans32,
+        .m_encoding = iguana::encoding::iguana,
+        .m_rejection_threshold = default_rejection_threshold
+    };
+    encode(prt);   
+}
+
+void iguana::encoder::encode(const part* p_parts, std::size_t n_parts) {
+    
+
+}
+
+/*
+iguana::encoder::part_ptr iguana::encoder::encode_part(const std::uint8_t* p, std::size_t n) {
+    IGUANA_UNIMPLEMENTED
+}
+*/

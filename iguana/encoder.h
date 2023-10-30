@@ -14,7 +14,6 @@
 
 #pragma once
 #include <memory>
-#include <list>
 #include "common.h"
 #include "span.h"
 #include "error.h"
@@ -37,14 +36,13 @@ namespace iguana {
         friend internal::initializer<encoder>;
 
     public:
-        struct request;
-        using part_ptr = std::unique_ptr<std::uint8_t []>;
+        struct part;
+
+    public:
+        static constexpr inline double default_rejection_threshold = 1.0;
 
     private:
         static const internal::initializer<encoder> g_Initializer;
-
-    private:
-        std::list<part_ptr> m_parts;
      
     public:
         encoder();
@@ -57,11 +55,13 @@ namespace iguana {
         encoder& operator =(encoder&&) = default;
      
     public:
-        part_ptr encode_part(const std::uint8_t* p, std::size_t n);
+        void encode(const part* p_parts, std::size_t n_parts);
 
-        part_ptr encode_part(const const_byte_span& s) {
-            return encode_part(s.data(), s.size());
+        void encode(const part& p) {
+            encode(&p, 1);
         }
+
+        void encode(const std::uint8_t* p, std::size_t n);
 
     private:
         static void at_process_start();
@@ -70,7 +70,7 @@ namespace iguana {
 
     //
 
-    struct encoder::request final {
+    struct encoder::part final {
         const std::uint8_t* m_data;
         std::size_t         m_size;
         entropy_mode        m_entropy_mode;
