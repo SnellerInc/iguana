@@ -57,6 +57,7 @@ namespace iguana {
     private:
         std::vector<std::uint8_t>   m_control;
         std::ptrdiff_t              m_last_command_offset = -1;
+        output_stream               m_entropy_data;
 
     public:
         encoder();
@@ -85,11 +86,13 @@ namespace iguana {
         //
         
         void encode_part(output_stream& dst, const part& p);
-        void encode_raw(output_stream& dst, const part& p);
         void encode_iguana(output_stream& dst, const part& p);
-        void encode_ans32(output_stream& dst, const part& p);
-        void encode_ans1(output_stream& dst, const part& p);
-        void encode_ans_nibble(output_stream& dst, const part& p);
+        void encode_entropy_raw(output_stream& dst, const part& p);
+
+        template <
+            typename T_ENCODER,
+            command  E_COMMAND
+        > void encode_entropy(output_stream& dst, const part& p);
 
         //
 

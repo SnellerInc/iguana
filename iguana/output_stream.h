@@ -64,6 +64,7 @@ namespace iguana {
         }
 
         void append(const value_type* p, size_type n);
+        void append(const output_stream& s);
 
         void append(const const_byte_span& s) {
             append(s.data(), s.size());
@@ -80,6 +81,7 @@ namespace iguana {
         //
 
         void append_reverse(const value_type* p, size_type n);
+        void append_reverse(const output_stream& s);
 
         void append_reverse(const const_byte_span& s) {
             append_reverse(s.data(), s.size());

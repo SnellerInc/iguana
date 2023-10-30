@@ -18,6 +18,9 @@
 #include "encoder.h"
 #include "bitops.h"
 #include "error.h"
+#include "ans32.h"
+#include "ans1.h"
+#include "ans_nibble.h"
 
 //
 
@@ -64,6 +67,37 @@ void iguana::encoder::at_process_start() {
 
 void iguana::encoder::at_process_end() {
     printf("iguana::encoder::at_process_end()\n");
+}
+
+void iguana::encoder::encode_entropy_raw(output_stream& dst, const part& p) {
+	append_control_command(command::copy_raw);
+    append_control_var_uint(p.m_size);
+    dst.append(p.m_data, p.m_size);
+}
+
+template <
+    typename T_ENCODER,
+    iguana::command E_COMMAND
+> void iguana::encoder::encode_entropy(output_stream& dst, const part& p) {
+    T_ENCODER{}.encode(m_entropy_data, p.m_data, p.m_size);
+
+    const auto src_len = p.m_size;
+    const auto entropy_len = m_entropy_data.size();
+
+    if (const auto ratio = double(entropy_len) / double(src_len); ratio >= p.m_rejection_threshold) {
+        encode_entropy_raw(dst, p);
+    } else {
+        append_control_command(E_COMMAND);
+        append_control_var_uint(src_len);
+        append_control_var_uint(entropy_len);
+        dst.append(m_entropy_data);
+    }
+
+    m_entropy_data.clear();
+}
+
+void iguana::encoder::encode_iguana(output_stream& dst, const part& p) {
+    IGUANA_UNIMPLEMENTED
 }
 
 void iguana::encoder::encode(output_stream& dst, const std::uint8_t* p, std::size_t n) {
@@ -118,19 +152,19 @@ void iguana::encoder::encode_part(output_stream& dst, const part& p) {
     case encoding::raw:
         switch(p.m_entropy_mode) {
         case entropy_mode::none:
-            encode_raw(dst, p);
+            encode_entropy_raw(dst, p);
             break;
 
         case entropy_mode::ans32:
-            encode_ans32(dst, p);
+            encode_entropy<ans32::encoder, command::decode_ans32>(dst, p);
             break;
 
         case entropy_mode::ans1:
-            encode_ans1(dst, p);
+            encode_entropy<ans1::encoder, command::decode_ans1>(dst, p);
             break;
 
         case entropy_mode::ans_nibble:
-            encode_ans_nibble(dst, p);
+            encode_entropy<ans_nibble::encoder, command::decode_ans_nibble>(dst, p);
             break;
 
         default:
@@ -166,26 +200,4 @@ void iguana::encoder::append_control_command(command cmd) {
 
 	m_last_command_offset = m_control.size();
     m_control.push_back(static_cast<std::uint8_t>(cmd) | last_command_marker);
-}
-
-void iguana::encoder::encode_raw(output_stream& dst, const part& p) {
-	append_control_command(command::copy_raw);
-    append_control_var_uint(p.m_size);
-    dst.append(p.m_data, p.m_size);
-}
-
-void iguana::encoder::encode_iguana(output_stream& dst, const part& p) {
-    IGUANA_UNIMPLEMENTED
-}
-
-void iguana::encoder::encode_ans32(output_stream& dst, const part& p) {
-    IGUANA_UNIMPLEMENTED
-}
-
-void iguana::encoder::encode_ans1(output_stream& dst, const part& p) {
-    IGUANA_UNIMPLEMENTED
-}
-
-void iguana::encoder::encode_ans_nibble(output_stream& dst, const part& p) {
-    IGUANA_UNIMPLEMENTED
 }

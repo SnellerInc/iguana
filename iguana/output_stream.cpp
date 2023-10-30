@@ -21,9 +21,19 @@ void iguana::output_stream::append(const value_type* p, size_type n) {
     }
 }
 
+void iguana::output_stream::append(const output_stream& s) {
+    // TODO: optimize me
+    append(s.data(), s.size());
+}
+
 void iguana::output_stream::append_reverse(const value_type* p, size_type n) {
     // TODO: optimize me
     for(auto* e = p + n; e != p;) {
         append(*--e);
     }
+}
+
+void iguana::output_stream::append_reverse(const output_stream& s) {
+    // TODO: optimize me
+    append_reverse(s.data(), s.size());
 }
