@@ -16,6 +16,13 @@
 #include "common.h"
 
 namespace iguana::utils {
+
+    template <
+        typename T
+    > struct invalid final {};
+
+    //
+
     template <
         typename T1,
         typename T2

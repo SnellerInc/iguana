@@ -90,8 +90,7 @@ namespace iguana {
         void encode_entropy_raw(output_stream& dst, const part& p);
 
         template <
-            typename T_ENCODER,
-            command  E_COMMAND
+            typename T_ENCODER
         > void encode_entropy(output_stream& dst, const part& p);
 
         //

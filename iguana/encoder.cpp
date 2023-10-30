@@ -21,11 +21,19 @@
 #include "ans32.h"
 #include "ans1.h"
 #include "ans_nibble.h"
+#include "utils.h"
 
 //
 
 namespace iguana {
     const internal::initializer<encoder> encoder::g_Initializer;
+
+    //
+
+    template <typename T_ENCODER> command decoding_command = utils::invalid<T_ENCODER>::value; 
+    template <> command decoding_command<ans32::encoder> = command::decode_ans32; 
+    template <> command decoding_command<ans1::encoder> = command::decode_ans1; 
+    template <> command decoding_command<ans_nibble::encoder> = command::decode_ans_nibble; 
 }
 
 //
@@ -76,8 +84,7 @@ void iguana::encoder::encode_entropy_raw(output_stream& dst, const part& p) {
 }
 
 template <
-    typename T_ENCODER,
-    iguana::command E_COMMAND
+    typename T_ENCODER
 > void iguana::encoder::encode_entropy(output_stream& dst, const part& p) {
     T_ENCODER{}.encode(m_entropy_data, p.m_data, p.m_size);
 
@@ -87,7 +94,7 @@ template <
     if (const auto ratio = double(entropy_len) / double(src_len); ratio >= p.m_rejection_threshold) {
         encode_entropy_raw(dst, p);
     } else {
-        append_control_command(E_COMMAND);
+        append_control_command(decoding_command<T_ENCODER>);
         append_control_var_uint(src_len);
         append_control_var_uint(entropy_len);
         dst.append(m_entropy_data);
@@ -156,15 +163,15 @@ void iguana::encoder::encode_part(output_stream& dst, const part& p) {
             break;
 
         case entropy_mode::ans32:
-            encode_entropy<ans32::encoder, command::decode_ans32>(dst, p);
+            encode_entropy<ans32::encoder>(dst, p);
             break;
 
         case entropy_mode::ans1:
-            encode_entropy<ans1::encoder, command::decode_ans1>(dst, p);
+            encode_entropy<ans1::encoder>(dst, p);
             break;
 
         case entropy_mode::ans_nibble:
-            encode_entropy<ans_nibble::encoder, command::decode_ans_nibble>(dst, p);
+            encode_entropy<ans_nibble::encoder>(dst, p);
             break;
 
         default:
