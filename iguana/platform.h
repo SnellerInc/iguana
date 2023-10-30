@@ -46,3 +46,9 @@
 //
 
 #define IGUANA_PROCESSOR_LITTLE_ENDIAN true
+
+//
+
+#define EXPECT(e, v) __builtin_expect((e), (v))
+#define SELDOM(e)   EXPECT((e), false)
+#define OFTEN(e)    EXPECT((e), true)

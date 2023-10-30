@@ -13,61 +13,103 @@
 //  limitations under the License.
 
 #pragma once
+#include <cassert>
 #include "common.h"
 
 namespace iguana::bit {
 
-    inline unsigned int find_first_set(unsigned int x) {
+    template <
+        typename T
+    > constexpr std::enable_if_t<std::is_unsigned_v<T>, bool> is_power_of_2_or_zero(T v) noexcept {
+        return (v & (v - 1)) == T(0);
+    }
+
+    template <
+        typename T
+    > constexpr std::enable_if_t<std::is_unsigned_v<T>, bool> is_power_of_2(T v) noexcept {
+        return is_power_of_2_or_zero(v) && (v != T(0));
+    }
+
+    //
+
+    constexpr unsigned int find_first_set(unsigned int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_ffs(x));
     }
 
-    inline unsigned int find_first_set(unsigned long int x) {
+    constexpr unsigned int find_first_set(unsigned long int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_ffsl(x));
     }
 
-    inline unsigned int find_first_set(unsigned long long int x) {
+    constexpr unsigned int find_first_set(unsigned long long int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_ffsll(x));
     }
 
     //
 
-    inline unsigned int count_leading_zeros(unsigned int x) {
+    constexpr unsigned int count_leading_zeros(unsigned int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_clz(x));
     }
 
-    inline unsigned int count_leading_zeros(unsigned long int x) {
+    constexpr unsigned int count_leading_zeros(unsigned long int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_clzl(x));
     }
 
-    inline unsigned int count_leading_zeros(unsigned long long int x) {
+    constexpr unsigned int count_leading_zeros(unsigned long long int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_clzll(x));
     }
 
     //
 
-    inline unsigned int count_trailing_zeros(unsigned int x) {
+    constexpr unsigned int count_trailing_zeros(unsigned int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_ctz(x));
     }
 
-    inline unsigned int count_trailing_zeros(unsigned long int x) {
+    constexpr unsigned int count_trailing_zeros(unsigned long int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_ctzl(x));
     }
 
-    inline unsigned int count_trailing_zeros(unsigned long long int x) {
+    constexpr unsigned int count_trailing_zeros(unsigned long long int x) noexcept {
+        assert(x != 0);
         return static_cast<unsigned int>(__builtin_ctzll(x));
     }
 
     //
 
-    inline unsigned int count_set(unsigned int x) {
+    constexpr unsigned int count_set(unsigned int x) noexcept {
         return static_cast<unsigned int>(__builtin_popcount(x));
     }
 
-    inline unsigned int count_set(unsigned long int x) {
+    constexpr unsigned int count_set(unsigned long int x) noexcept {
         return static_cast<unsigned int>(__builtin_popcountl(x));
     }
 
-    inline unsigned int count_set(unsigned long long int x) {
+    constexpr unsigned int count_set(unsigned long long int x) noexcept {
         return static_cast<unsigned int>(__builtin_popcountll(x));
+    }
+
+    //
+
+    template <
+        typename T
+    > constexpr std::enable_if_t<std::is_unsigned_v<T>, unsigned int> find_last_set(T x) noexcept {
+        assert(x != 0);
+        return (sizeof(T)*8 - 1) - count_leading_zeros(x);
+    };
+
+    //
+
+    template <
+        typename T
+    > constexpr std::enable_if_t<std::is_unsigned_v<T>, unsigned int> length(T v) noexcept {
+        // Returns the minimum number of bits required to represent x; the result is 0 for x == 0.
+        return OFTEN(v != T(0)) ? (find_last_set(v) + 1) : 0;
     }
 }
