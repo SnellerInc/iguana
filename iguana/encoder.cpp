@@ -147,7 +147,7 @@ void iguana::encoder::encode(output_stream& dst, const part* first, const part* 
 }
 
 void iguana::encoder::encode_part(output_stream& dst, const part& p) {
-    if (SELDOM(p.m_size == 0)) {
+    if (p.m_size == 0) [[unlikely]] { 
         return;
     }
 

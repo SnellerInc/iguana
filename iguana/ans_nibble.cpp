@@ -13,6 +13,9 @@
 //  limitations under the License.
 
 #include "ans_nibble.h"
+#include "utils.h"
+
+//
 
 namespace iguana::ans_nibble {
     void (*encoder::g_Compress)(context& ctx) = &encoder::compress_portable;

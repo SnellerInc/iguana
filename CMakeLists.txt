@@ -1,33 +1,52 @@
 cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
 
+set(CMAKE_C_COMPILER "clang")
+set(CMAKE_CXX_COMPILER "clang++")
+
 # Iguana Project
 # ==============
 
 project(iguana CXX)
 
 set(IGUANA_SRC
-  "iguana/ans_decoder.cpp"
-  "iguana/ans_decoder.h"
-  "iguana/ans_encoder.cpp"
-  "iguana/ans_encoder.h"
-  "iguana/ans_statistics.cpp"
-  "iguana/ans_statistics.h"
   "iguana/ans1.cpp"
   "iguana/ans1.h"
   "iguana/ans32.cpp"
   "iguana/ans32.h"
+  "iguana/ans_bitstream.cpp"
+  "iguana/ans_bitstream.h"
+  "iguana/ans_byte_statistics.cpp"
+  "iguana/ans_byte_statistics.h"
+  "iguana/ans_decoder.h"
+  "iguana/ans_encoder.h"
+  "iguana/ans_nibble.cpp"
+  "iguana/ans_nibble.h"
+  "iguana/ans_nibble_statistics.cpp"
+  "iguana/ans_nibble_statistics.h"
+  "iguana/bitops.h"
+  "iguana/c_bindings.cpp"
+  "iguana/c_bindings.h"
   "iguana/command.h"
+  "iguana/common.cpp"
   "iguana/common.h"
   "iguana/decoder.cpp"
   "iguana/decoder.h"
+  "iguana/encoder.cpp"
+  "iguana/encoder.h"
+  "iguana/entropy.cpp"
+  "iguana/entropy.h"
   "iguana/error.cpp"
   "iguana/error.h"
+  "iguana/file.cpp"
+  "iguana/file.h"
   "iguana/input_stream.h"
   "iguana/memops.h"
   "iguana/output_stream.cpp"
   "iguana/output_stream.h"
+  "iguana/platform.h"
   "iguana/span.h"
   "iguana/utils.h"
+  "main.cpp"
 )
 
 source_group(TREE ${CMAKE_CURRENT_LIST_DIR} FILES ${IGUANA_SRC})
@@ -171,7 +190,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" OR "x${CMAKE_CXX_COMPILER_FRONTEN
     -Zc:__cplusplus          # [+] Conforming __cplusplus definition.
     -Zc:inline               # [+] Remove unreferenced COMDAT.
     -Zc:strictStrings        # [+] Strict const qualification of string literals.
-    -W4)                     # [+] Warning level 4.
+    -W4		                 # [+] Warning level 4.
+    -std:c++20)              # [+] Enable the C++20 features
+    add_compile_definitions(IGUANA_COMPILER_MSVC=true)
 elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "^(GNU|Clang|AppleClang)$")
   list(APPEND IGUANA_PRIVATE_CFLAGS -Wall -Wextra -Wconversion)
   list(APPEND IGUANA_PRIVATE_CFLAGS -fno-math-errno)

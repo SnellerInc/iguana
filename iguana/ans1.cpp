@@ -13,6 +13,7 @@
 //  limitations under the License.
 
 #include "ans1.h"
+#include "utils.h"
 
 namespace iguana::ans1 {
     void (*encoder::g_Compress)(context& ctx) = &encoder::compress_portable;

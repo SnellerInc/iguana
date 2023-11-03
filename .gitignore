@@ -35,3 +35,13 @@
 build
 build_*
 .vscode
+
+CMakeFiles
+CMakeCache.txt
+*.cmake
+*.exp
+ALL_BUILD.vcxproj.user
+iguana.vcxproj.user
+Debug
+Release
+.vs

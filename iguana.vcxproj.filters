@@ -1,0 +1,127 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\work\iguana\iguana\ans1.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\ans32.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\ans_bitstream.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\ans_byte_statistics.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\ans_nibble.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\ans_nibble_statistics.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\c_bindings.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\common.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\decoder.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\encoder.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\entropy.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\error.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\file.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\iguana\output_stream.cpp">
+      <Filter>iguana</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\work\iguana\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="C:\work\iguana\iguana\ans1.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\ans32.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\ans_bitstream.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\ans_byte_statistics.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\ans_decoder.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\ans_encoder.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\ans_nibble.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\ans_nibble_statistics.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\bitops.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\c_bindings.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\command.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\common.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\decoder.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\encoder.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\entropy.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\error.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\file.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\input_stream.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\memops.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\output_stream.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\platform.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\span.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\work\iguana\iguana\utils.h">
+      <Filter>iguana</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\work\iguana\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="iguana">
+      <UniqueIdentifier>{C8A6D450-05EF-3DCC-AC1F-2B2D1E5F2FEF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

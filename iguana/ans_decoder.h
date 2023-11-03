@@ -51,9 +51,9 @@ namespace iguana::ans {
         T_CONCRETE,
         T_STATISTICS
     >::decode(output_stream& dst, std::size_t result_size, input_stream& src) {
-        const typename T::statistics stats(src);
-        statistics::decoding_table tab;
+        const typename T_CONCRETE::statistics stats(src);
+        typename statistics::decoding_table tab;
         stats.build_decoding_table(tab);
-        T::decode(dst, result_size, src, tab);
+        static_cast<T_CONCRETE*>(this)->decode(dst, result_size, src, tab);
     }
 }

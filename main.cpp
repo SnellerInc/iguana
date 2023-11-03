@@ -23,22 +23,28 @@
 #include <map>
 #include <memory>
 #include "iguana/error.h"
+#include "iguana/file.h"
+#include "iguana/output_stream.h"
+#include "iguana/decoder.h"
+#include "iguana/encoder.h"
 
-// TODO: use a proper makefile
-#include "iguana/common.cpp"
-#include "iguana/ans_byte_statistics.cpp"
-#include "iguana/ans_nibble_statistics.cpp"
-#include "iguana/ans1.cpp"
-#include "iguana/ans32.cpp"
-#include "iguana/ans_nibble.cpp"
-#include "iguana/ans_bitstream.cpp"
-#include "iguana/error.cpp"
-#include "iguana/entropy.cpp"
-#include "iguana/output_stream.cpp"
-#include "iguana/decoder.cpp"
-#include "iguana/encoder.cpp"
-#include "iguana/c_bindings.cpp"
-#include "iguana/file.cpp"
+#if !defined(IGUANA_COMPILER_MSVC)
+    // TODO: use a proper makefile
+    #include "iguana/common.cpp"
+    #include "iguana/ans_byte_statistics.cpp"
+    #include "iguana/ans_nibble_statistics.cpp"
+    #include "iguana/ans1.cpp"
+    #include "iguana/ans32.cpp"
+    #include "iguana/ans_nibble.cpp"
+    #include "iguana/ans_bitstream.cpp"
+    #include "iguana/error.cpp"
+    #include "iguana/entropy.cpp"
+    #include "iguana/output_stream.cpp"
+    #include "iguana/decoder.cpp"
+    #include "iguana/encoder.cpp"
+    #include "iguana/c_bindings.cpp"
+    #include "iguana/file.cpp"
+#endif
 
 //
 

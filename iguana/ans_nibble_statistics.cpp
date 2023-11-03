@@ -16,6 +16,7 @@
 #include "ans_nibble_statistics.h"
 #include "ans_bitstream.h"
 #include "utils.h"
+#include "error.h"
 
 // For theoretical background, please refer to Jaroslaw Duda's seminal paper on rANS:
 // https://arxiv.org/pdf/1311.2540.pdf

@@ -16,6 +16,7 @@
 #include "ans_byte_statistics.h"
 #include "ans_bitstream.h"
 #include "utils.h"
+#include "error.h"
 
 //
 

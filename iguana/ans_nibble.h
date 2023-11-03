@@ -14,7 +14,10 @@
 
 #pragma once
 #include <array>
+#include "error.h"
 #include "common.h"
+#include "ans_encoder.h"
+#include "ans_decoder.h"
 #include "ans_nibble_statistics.h"
 
 //

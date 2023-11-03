@@ -14,6 +14,7 @@
 
 #pragma once
 #include "common.h"
+#include "error.h"
 #include "ans_encoder.h"
 #include "ans_decoder.h"
 #include "ans_byte_statistics.h"

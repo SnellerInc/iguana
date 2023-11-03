@@ -14,6 +14,7 @@
 
 #include "ans32.h"
 #include "memops.h"
+#include "utils.h"
 
 //
 
