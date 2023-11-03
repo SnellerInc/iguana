@@ -72,13 +72,9 @@ void iguana::ans_nibble::encoder::compress_portable(context& ctx) {
 	ctx.ec = error_code::ok;
 }
 
-void iguana::ans_nibble::encoder::at_process_start() {
-    printf("iguana::ans_nibble::encoder::at_process_start()\n");
-}
+void iguana::ans_nibble::encoder::at_process_start() {}
 
-void iguana::ans_nibble::encoder::at_process_end() {
-    printf("iguana::ans_nibble::encoder::at_process_end()\n");
-}
+void iguana::ans_nibble::encoder::at_process_end() {}
 
 iguana::ans_nibble::decoder::~decoder() noexcept {}
 
@@ -156,10 +152,6 @@ void iguana::ans_nibble::decoder::decompress_portable(context& ctx) {
 	ctx.ec = error_code::ok;
 }
 
-void iguana::ans_nibble::decoder::at_process_start() {
-    printf("iguana::ans_nibble::decoder::at_process_start()\n");
-}
+void iguana::ans_nibble::decoder::at_process_start() {}
 
-void iguana::ans_nibble::decoder::at_process_end() {
-    printf("iguana::ans_nibble::decoder::at_process_end()\n");
-}
+void iguana::ans_nibble::decoder::at_process_end() {}

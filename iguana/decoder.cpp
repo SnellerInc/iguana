@@ -419,13 +419,9 @@ func iguanaWildCopy(dst []byte, pos, matchlen int) []byte {
 */
 }
 
-void iguana::decoder::at_process_start() {
-    printf("iguana::decoder::at_process_start()\n");
-}
+void iguana::decoder::at_process_start() {}
 
-void iguana::decoder::at_process_end() {
-    printf("iguana::decoder::at_process_end()\n");
-}
+void iguana::decoder::at_process_end() {}
 
 std::uint8_t iguana::decoder::substream::fetch8(error_code& ec) noexcept {
     if (empty()) {

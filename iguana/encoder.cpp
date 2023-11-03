@@ -69,13 +69,9 @@ iguana::encoder::encoder() {}
 
 iguana::encoder::~encoder() {}
 
-void iguana::encoder::at_process_start() {
-    printf("iguana::encoder::at_process_start()\n");
-}
+void iguana::encoder::at_process_start() {}
 
-void iguana::encoder::at_process_end() {
-    printf("iguana::encoder::at_process_end()\n");
-}
+void iguana::encoder::at_process_end() {}
 
 void iguana::encoder::encode_entropy_raw(output_stream& dst, const part& p) {
 	append_control_command(command::copy_raw);

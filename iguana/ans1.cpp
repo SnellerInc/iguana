@@ -64,13 +64,9 @@ void iguana::ans1::encoder::compress_portable(context& ctx) {
 	ctx.ec = error_code::ok;    
 }
 
-void iguana::ans1::encoder::at_process_start() {
-    printf("iguana::ans1::encoder::at_process_start()\n");
-}
+void iguana::ans1::encoder::at_process_start() {}
 
-void iguana::ans1::encoder::at_process_end() {
-    printf("iguana::ans1::encoder::at_process_end()\n");
-}
+void iguana::ans1::encoder::at_process_end() {}
 
 iguana::ans1::decoder::~decoder() noexcept {}
 
@@ -128,10 +124,6 @@ void iguana::ans1::decoder::decompress_portable(context& ctx) {
 	ctx.ec = error_code::ok;
 }
 
-void iguana::ans1::decoder::at_process_start() {
-    printf("iguana::ans1::decoder::at_process_start()\n");
-}
+void iguana::ans1::decoder::at_process_start() {}
 
-void iguana::ans1::decoder::at_process_end() {
-    printf("iguana::ans1::decoder::at_process_end()\n");
-}
+void iguana::ans1::decoder::at_process_end() {}
