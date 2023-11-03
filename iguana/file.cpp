@@ -44,7 +44,35 @@ void iguana::file::reset(std::FILE* p, bool should_close) noexcept {
 void iguana::file::open(const std::string& name, const std::string& mode) {
     std::FILE* p = nullptr; 
     if (fopen_s(&p, name.c_str(), mode.c_str()) != 0) {
-        throw std::runtime_error(std::string("cannot create output file"));
+        throw std::runtime_error(std::string("cannot open file"));
     }
     reset(p, true);
+}
+
+std::uint64_t iguana::file::size() const {
+    if (SELDOM(m_file == nullptr)) {
+        throw std::runtime_error(std::string("not associated with any file"));
+    }
+    std::fpos_t cur_pos = 0;
+    if (SELDOM(std::fgetpos(m_file, &cur_pos) != 0)) {
+        throw std::runtime_error(std::string("std::fgetpos() failed"));
+    }
+    if (SELDOM(std::fseek(m_file, 0, SEEK_END) != 0)) {
+        throw std::runtime_error(std::string("std::fseek() failed"));
+    }
+    std::fpos_t end_pos = 0;
+    if (SELDOM(std::fgetpos(m_file, &end_pos) != 0)) {
+        throw std::runtime_error(std::string("std::fgetpos() failed"));
+    }
+    if (SELDOM(std::fsetpos(m_file, &cur_pos) != 0)) {
+        throw std::runtime_error(std::string("std::fsetpos() failed"));
+    }
+    return static_cast<std::uint64_t>(end_pos);    
+}
+
+void iguana::file::read(void* __restrict__ p, std::uint64_t n) {
+    std::fread(p, 1, static_cast<std::size_t>(n), m_file);
+    if (SELDOM(std::ferror(m_file))) {
+        throw std::runtime_error(std::string("std::fread() failed"));
+    }
 }

@@ -51,6 +51,8 @@ namespace iguana {
         void close() noexcept;
         void reset(std::FILE* p, bool should_close) noexcept;
         void open(const std::string& name, const std::string& mode);   
+        void read(void* __restrict__ p, std::uint64_t n);
+        std::uint64_t size() const;
 
         constexpr std::FILE* get() const noexcept {
             return m_file;

@@ -172,6 +172,11 @@ iguana::command_line::map_type iguana::command_line::parser::parse() {
             continue;
         }
 
+        if ((std::strcmp(opt, "-i") == 0) || (std::strcmp(opt, "--input") == 0)) {
+            add("i", "input", get_string_parameter_for(opt));            
+            continue;
+        }
+
         if ((std::strcmp(opt, "-t") == 0) || (std::strcmp(opt, "--threshold") == 0)) {
             const auto v = get_double_parameter_for(opt);
             if ((v < 0.0) || (v > 1.0)) {
@@ -244,6 +249,7 @@ int main(int argc, char *argv[]) try {
     if (options.contains("help")) {
         std::cout << argv[0] << " [args] [-o file]" << std::endl;
         std::cout << "  -h, --help" << std::endl;
+        std::cout << "  -i, --input file" << std::endl;
         std::cout << "  -o, --output file" << std::endl;
         std::cout << "  -d, --decompress" << std::endl;
         std::cout << "  -t, --threshold" << std::endl;
@@ -253,11 +259,15 @@ int main(int argc, char *argv[]) try {
     }
 
     {   iguana::file f_out(stdout, false);
-
         if (options.contains("output")) {
             const auto path = options.get<std::string>("output"); 
             f_out.open(path.c_str(), "wb");
         }
+
+        iguana::file f_in(options.get<std::string>("input"), "rb");
+        const auto f_in_size = f_in.size();
+        const std::unique_ptr<std::uint8_t []> data_in(new std::uint8_t[f_in_size]);
+        f_in.read(data_in.get(), f_in_size);
 
         if (options.contains("decompress")) {
         
