@@ -15,12 +15,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <cerrno>
 #include <string>
 #include <stdexcept>
 #include <iostream>
 #include <variant>
-#include <fstream>
 #include <map>
+#include <memory>
 #include "iguana/error.h"
 
 // TODO: use a proper makefile
@@ -37,6 +38,7 @@
 #include "iguana/decoder.cpp"
 #include "iguana/encoder.cpp"
 #include "iguana/c_bindings.cpp"
+#include "iguana/file.cpp"
 
 //
 
@@ -250,13 +252,11 @@ int main(int argc, char *argv[]) try {
         return EXIT_SUCCESS;
     }
 
-    {   std::ofstream str_out;
-        std::ostream* p_str_out = &std::cout;
+    {   iguana::file f_out(stdout, false);
 
         if (options.contains("output")) {
             const auto path = options.get<std::string>("output"); 
-            str_out.open(path, std::ios::out | std::ios::binary | std::ios::trunc);
-            p_str_out = &str_out;
+            f_out.open(path.c_str(), "wb");
         }
 
         if (options.contains("decompress")) {
